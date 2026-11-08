@@ -138,17 +138,17 @@ small{color:#94a3b8;font-size:11px}
         <div class="seg fix" id="spdSeg"><button data-s="1">1.00x</button><button data-s="1.01">1.01x</button><button data-s="1.02" class="on">1.02x</button></div>
       </div>
       <div class="row">
-        <div><small>Potong: mulai (dtk)</small><input type="number" id="tStart" min="0" step="0.1" value="0"></div>
+        <div><small>Dipakai: mulai (dtk)</small><input type="number" id="tStart" min="0" step="0.1" value="0"></div>
         <button class="btn2 fix" id="nowStart">Now</button>
-        <div><small>Selesai (dtk)</small><input type="number" id="tEnd" min="0.5" step="0.1" value="10"></div>
+        <div><small>Dipakai: sampai (dtk)</small><input type="number" id="tEnd" min="0.5" step="0.1" value="10"></div>
         <button class="btn2 fix" id="nowEnd">Now</button>
       </div>
       <div class="row">
         <label class="t"><input type="checkbox" id="fadeIn" checked>Fade In</label>
         <label class="t"><input type="checkbox" id="fadeOut" checked>Fade Out (5s)</label>
-        <button class="btn2 fix" id="resetTrim">Reset Potong</button>
+        <button class="btn2 fix" id="resetTrim">Pakai Semua</button>
       </div>
-      <small id="trimInfo"></small>
+      <small id="trimInfo"></small><br><small>Bagian yang dipotong adalah yang dipakai di hasil akhir (preview &amp; download), bagian di luar rentang tidak dipakai.</small>
     </div>
   </div>
 
@@ -463,7 +463,7 @@ function setSpeed(s){
 document.querySelectorAll('#spdSeg button').forEach(b=>b.onclick=()=>{setSpeed(b.dataset.s);toast('Kecepatan '+b.dataset.s+'x');});
 function trimInfo(){
   const s=parseFloat($('tStart').value)||0,e=parseFloat($('tEnd').value)||0;
-  $('trimInfo').textContent=`Durasi potongan: ${Math.max(0,e-s).toFixed(1)}s (${s.toFixed(1)}s – ${e.toFixed(1)}s)`;
+  $('trimInfo').textContent=`Bagian dipakai: ${Math.max(0,e-s).toFixed(1)}s (${s.toFixed(1)}s – ${e.toFixed(1)}s)`;
 }
 ['tStart','tEnd'].forEach(id=>$(id).oninput=trimInfo);
 $('nowStart').onclick=()=>{$('tStart').value=vid.currentTime.toFixed(1);trimInfo();};
