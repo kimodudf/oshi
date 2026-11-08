@@ -138,9 +138,9 @@ small{color:#94a3b8;font-size:11px}
         <div class="seg fix" id="spdSeg"><button data-s="1">1.00x</button><button data-s="1.01">1.01x</button><button data-s="1.02" class="on">1.02x</button></div>
       </div>
       <div class="row">
-        <div><small>Dipakai: mulai (dtk)</small><input type="number" id="tStart" min="0" step="0.1" value="0"></div>
+        <div><small>Dipakai: mulai (mm:ss)</small><input type="text" inputmode="decimal" id="tStart" value="00:00" placeholder="00:00"></div>
         <button class="btn2 fix" id="nowStart">Now</button>
-        <div><small>Dipakai: sampai (dtk)</small><input type="number" id="tEnd" min="0.5" step="0.1" value="10"></div>
+        <div><small>Dipakai: sampai (mm:ss)</small><input type="text" inputmode="decimal" id="tEnd" value="00:10" placeholder="00:10"></div>
         <button class="btn2 fix" id="nowEnd">Now</button>
       </div>
       <div class="row">
@@ -447,7 +447,7 @@ function setVideo(src){
   mediaType='video';img.classList.add('hid');vid.classList.remove('hid');$('vidPanel').classList.remove('hid');
   vid.src=src;vid.load();setSpeed(1.02);
   vid.onloadedmetadata=()=>{
-    const d=vid.duration||10;$('vSeek').max=d;$('tStart').value=0;$('tEnd').value=d.toFixed(1);$('tEnd').max=d.toFixed(1);
+    const d=vid.duration||10;$('vSeek').max=d;setT('tStart',0);setT('tEnd',d);
     trimInfo();vid.playbackRate=speed;vid.play();$('play').textContent='Pause';
   };
   st.x=st.y=0;st.s=1;applyT();applyFit();updateDlLabel();toast('Video dimuat, speed 1.02x');
@@ -455,6 +455,18 @@ function setVideo(src){
 $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f);f.type.startsWith('video/')?setVideo(u):setImage(u);};
 $('applyUrl').onclick=()=>{const u=$('url').value.trim();if(!u)return;/\.(mp4|webm|mov)(\?.*)?$/i.test(u)?setVideo(u):setImage(u);};
 
+function fmtTD(s){
+  const t=Math.round(Math.max(0,s)*10)/10,m=Math.floor(t/60),r=t-m*60;
+  const ri=Math.abs(r-Math.round(r))<1e-6;
+  return String(m).padStart(2,'0')+':'+(r<10?'0':'')+(ri?String(Math.round(r)):r.toFixed(1));
+}
+function pt(id){
+  const v=$(id).value.trim().replace(',','.');
+  if(!v)return NaN;
+  if(v.includes(':')){const p=v.split(':').map(Number);if(p.some(isNaN))return NaN;return p.reduce((a,x)=>a*60+x,0);}
+  return parseFloat(v);
+}
+function setT(id,sec){$(id).value=fmtTD(sec);}
 function fmtT(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');}
 function setSpeed(s){
   speed=parseFloat(s);vid.playbackRate=speed;vid.defaultPlaybackRate=speed;
@@ -462,13 +474,13 @@ function setSpeed(s){
 }
 document.querySelectorAll('#spdSeg button').forEach(b=>b.onclick=()=>{setSpeed(b.dataset.s);toast('Kecepatan '+b.dataset.s+'x');});
 function trimInfo(){
-  const s=parseFloat($('tStart').value)||0,e=parseFloat($('tEnd').value)||0;
-  $('trimInfo').textContent=`Bagian dipakai: ${Math.max(0,e-s).toFixed(1)}s (${s.toFixed(1)}s – ${e.toFixed(1)}s)`;
+  const s=pt('tStart')||0,e=pt('tEnd')||0;
+  $('trimInfo').textContent=`Bagian dipakai: ${fmtTD(Math.max(0,e-s))} (${fmtTD(s)} – ${fmtTD(e)})`;
 }
-['tStart','tEnd'].forEach(id=>$(id).oninput=trimInfo);
-$('nowStart').onclick=()=>{$('tStart').value=vid.currentTime.toFixed(1);trimInfo();};
-$('nowEnd').onclick=()=>{$('tEnd').value=vid.currentTime.toFixed(1);trimInfo();};
-$('resetTrim').onclick=()=>{$('tStart').value=0;$('tEnd').value=(vid.duration||10).toFixed(1);trimInfo();};
+['tStart','tEnd'].forEach(id=>{$(id).oninput=trimInfo;$(id).onchange=()=>{setT(id,pt(id)||0);trimInfo();};});
+$('nowStart').onclick=()=>{setT('tStart',vid.currentTime);trimInfo();};
+$('nowEnd').onclick=()=>{setT('tEnd',vid.currentTime);trimInfo();};
+$('resetTrim').onclick=()=>{setT('tStart',0);setT('tEnd',vid.duration||10);trimInfo();};
 $('play').onclick=()=>{if(vid.paused){vid.play();$('play').textContent='Pause';}else{vid.pause();$('play').textContent='Play';}};
 $('mute').onclick=()=>{vid.muted=!vid.muted;$('mute').textContent=vid.muted?'Unmute':'Mute';};
 $('vSeek').oninput=e=>{vid.currentTime=parseFloat(e.target.value);};
@@ -482,7 +494,7 @@ function fadeOpacity(el){
 vid.addEventListener('timeupdate',()=>{
   const cur=vid.currentTime,d=vid.duration||10;
   $('vSeek').value=cur;$('vTime').textContent=`${fmtT(cur)} / ${fmtT(d)}`;
-  const s=parseFloat($('tStart').value)||0,e=parseFloat($('tEnd').value)||d;
+  const s=pt('tStart')||0,e=pt('tEnd')||d;
   if(cur>=e&&!vid.paused)vid.currentTime=s;
   $('stack').style.opacity=mediaType==='video'?fadeOpacity(Math.max(0,cur-s)):1;
 });
@@ -591,8 +603,8 @@ async function exportVideo(f){
   try{
     const c=document.createElement('canvas');c.width=f.vw;c.height=f.vh;const ctx=c.getContext('2d');
     const tracks=[...c.captureStream(30).getVideoTracks()];
-    const s=Math.max(0,parseFloat($('tStart').value)||0);
-    let e=parseFloat($('tEnd').value);if(!e||e<=s)e=vid.duration||10;e=Math.min(e,vid.duration||e);
+    const s=Math.max(0,pt('tStart')||0);
+    let e=pt('tEnd');if(!e||e<=s)e=vid.duration||10;e=Math.min(e,vid.duration||e);
     vid.pause();vid.muted=false;vid.currentTime=s;vid.playbackRate=speed;
     await new Promise(r=>setTimeout(r,300));
     await vid.play();vid.playbackRate=speed;
