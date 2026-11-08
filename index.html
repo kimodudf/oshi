@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Post Generator – @oshitive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--g:#142e27;--b:#4262b2}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,sans-serif;background:#0f172a;color:#e2e8f0;font-size:13px}
+header{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 16px;background:#020617;border-bottom:1px solid #1e293b}
+header h1{font-size:15px;margin:0;color:var(--g)}
+button{font-family:inherit;cursor:pointer}
+.seg{display:flex;gap:4px;background:#0f172a;border:1px solid #1e293b;padding:3px;border-radius:10px}
+.seg button{border:0;background:none;color:#94a3b8;font-weight:700;font-size:12px;padding:6px 10px;border-radius:8px}
+.seg button.on{background:var(--g);color:#000}
+.btn{border:0;background:var(--g);color:#000;font-weight:700;font-size:13px;padding:9px 16px;border-radius:10px}
+.btn:disabled{opacity:.6}
+.btn2{border:1px solid #334155;background:#1e293b;color:#cbd5e1;font-size:11px;font-weight:600;padding:5px 9px;border-radius:8px}
+.btn2.bt.on{background:var(--g);color:#fff;border-color:#4ade80}
+main{max-width:1150px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:960px){main{grid-template-columns:5fr 6fr;align-items:start}#prev{order:2}#ctrl{order:1}}
+.card{background:#020617b3;border:1px solid #1e293b;border-radius:14px;padding:12px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#cbd5e1}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.row>*{flex:1}
+.row .fix{flex:none}
+label.t{display:flex;align-items:center;gap:6px;font-weight:600;font-size:12px;cursor:pointer;flex:none}
+input[type=text],input[type=number],textarea,select{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#fff;padding:7px 9px;font:600 12px Poppins,sans-serif}
+input[type=color]{width:38px;height:30px;padding:0;border:1px solid #334155;border-radius:8px;background:#0f172a;cursor:pointer;flex:none}
+textarea{resize:vertical}
+input[type=range]{width:100%;accent-color:var(--g)}
+input[type=checkbox]{accent-color:var(--g);width:15px;height:15px}
+small{color:#94a3b8;font-size:11px}
+.hid{display:none!important}
+/* modal */
+#modal{position:fixed;inset:0;z-index:60;background:#000d;display:flex;align-items:center;justify-content:center;padding:16px}
+#modal .box{background:#020617;border:1px solid #1e293b;border-radius:20px;padding:24px;max-width:560px;width:100%;text-align:center}
+#modal h2{margin:0 0 16px;color:var(--g)}
+#modal .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+#modal .opts button{background:#0f172a;border:2px solid #334155;border-radius:14px;padding:16px 8px;color:#fff}
+#modal .opts button:hover{border-color:var(--g)}
+#modal b{display:block;font-size:14px}#modal span{font-size:11px;color:#94a3b8}
+/* preview */
+#prev{display:flex;flex-direction:column;align-items:center;gap:6px}
+#frameBadge{font-size:11px;font-weight:700;color:var(--g)}
+#cap{position:relative;width:min(100%,520px);aspect-ratio:1/1;overflow:hidden;background:#000;container-type:inline-size;touch-action:none;user-select:none;border-radius:6px;box-shadow:0 10px 40px #0008}
+#bgBox{position:absolute;inset:0;z-index:0;overflow:hidden;background:#000}
+#blurL{position:absolute;inset:0;z-index:0;pointer-events:none;display:none;backdrop-filter:blur(calc(var(--bl,0)*1cqw));-webkit-backdrop-filter:blur(calc(var(--bl,0)*1cqw));-webkit-mask-size:100% 100%;mask-size:100% 100%}
+#brushOv{position:absolute;inset:0;z-index:6;cursor:none;touch-action:none}
+#brushCur{position:absolute;z-index:7;border:2px solid #fff;border-radius:50%;pointer-events:none;box-shadow:0 0 0 1px #000a;transform:translate(-50%,-50%);display:none}
+#tbox{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);cursor:move;touch-action:none}
+#tbox img,#tbox video{width:100%;height:100%;object-fit:contain;pointer-events:none;display:block}
+#tbox .bd{position:absolute;inset:0;border:2px dashed #ffffff90;pointer-events:none}
+.hd{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #333;z-index:3}
+#grad{position:absolute;left:0;right:0;bottom:0;height:45%;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+#stack{position:absolute;left:5cqw;right:5cqw;bottom:11cqw;z-index:2;pointer-events:none}
+#stack .drag{pointer-events:auto;cursor:move;touch-action:none}
+#metaRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2cqw}
+#tag{background:#fff;color:#4262b2;font-weight:900;font-size:2.6cqw;padding:.7cqw 2.8cqw;border-radius:.8cqw;text-transform:uppercase;line-height:1.3}
+#credit{margin-left:auto;background:#fff;color:#4262b2;font-weight:700;font-size:2.1cqw;padding:.7cqw 2.2cqw;border-radius:.8cqw;text-transform:uppercase;line-height:1.3}
+#capBox{background:#fff;padding:3.2cqw 4.2cqw}
+#hl{margin:0;color:#4262b2;font-weight:900;font-size:5.4cqw;line-height:1.14;letter-spacing:-.025em;white-space:pre-wrap;word-break:break-word;text-align:left}
+#foot{position:absolute;left:5cqw;right:5cqw;bottom:3.5cqw;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:3cqw;pointer-events:none}
+#wm{display:flex;align-items:center;gap:1cqw;color:#fff;font-weight:700;font-size:2.8cqw;white-space:nowrap}
+#wmIcon{width:3.4cqw;height:3.4cqw;display:block}
+#footTxt{color:#fff;font-weight:600;font-size:2.4cqw;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cap .g{position:absolute;z-index:5;pointer-events:none;transition:border-color .1s}
+#gV{top:0;bottom:0;left:50%;width:0;border-left:1px dashed rgba(255,255,255,.5)}
+#gH{left:0;right:0;top:50%;height:0;border-top:1px dashed rgba(255,255,255,.5)}
+#cap .g.hot{border-color:#4262b2;border-style:solid}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--g);color:#000;font-weight:700;font-size:12px;padding:9px 14px;border-radius:10px;opacity:0;transform:translateY(20px);transition:.3s;pointer-events:none;z-index:70}
+#toast.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div id="modal"><div class="box">
+  <h2>PILIH FORMAT KANVAS</h2>
+  <div class="opts">
+    <button data-f="instagram"><b>Instagram Feed</b><span>1080 x 1080 px (1:1)</span></button>
+    <button data-f="reels"><b>Instagram Reels</b><span>1080 x 1920 px (9:16)</span></button>
+    <button data-f="tiktok"><b>TikTok Photo</b><span>2494 x 3324 px (3:4)</span></button>
+  </div>
+  <p style="font-size:11px;color:#64748b;margin:14px 0 0">Format bisa diganti kapan saja lewat tombol di atas.</p>
+</div></div>
+
+<header>
+  <h1>NEWS GEN <span style="color:#94a3b8;font-weight:400">· @oshitive</span></h1>
+  <div class="seg" id="fmtSeg">
+    <button data-f="instagram">IG 1:1</button>
+    <button data-f="reels">Reels 9:16</button>
+    <button data-f="tiktok">TikTok 3:4</button>
+  </div>
+  <button class="btn" id="dl">Download</button>
+</header>
+
+<main>
+<div id="ctrl">
+
+  <div class="card">
+    <h3>Gambar / Video Latar</h3>
+    <div class="row">
+      <input type="file" id="file" accept="image/*,video/*">
+    </div>
+    <div class="row">
+      <input type="text" id="url" placeholder="Atau tempel URL gambar / video…">
+      <button class="btn2 fix" id="applyUrl">Pakai</button>
+    </div>
+    <div class="row">
+      <small class="fix">Mode</small>
+      <select id="fitMode">
+        <option value="fit" selected>Fit – tampil utuh, tidak terpotong (auto sesuai format)</option>
+        <option value="fill">Fill – penuhi kanvas (sisi bisa terpotong)</option>
+      </select>
+    </div>
+    <div class="row">
+      <small class="fix">Warna sisa</small>
+      <input type="color" id="bgc" value="#000000">
+      <small>Warna area kosong jika rasio file beda dengan format.</small>
+    </div>
+    <div class="row"><small class="fix">Zoom</small><input type="range" id="zoom" min="20" max="400" value="100"><small class="fix" id="zoomVal">100%</small><button class="btn2 fix" id="resetImg">Reset</button></div>
+    <small>Drag gambar untuk geser, tarik titik sudut / scroll untuk zoom.</small>
+
+    <div id="vidPanel" class="hid" style="margin-top:10px;border-top:1px solid #1e293b;padding-top:10px">
+      <div class="row">
+        <button class="btn2 fix" id="play">Play</button>
+        <button class="btn2 fix" id="mute">Mute</button>
+        <small class="fix" id="vTime">00:00 / 00:00</small>
+      </div>
+      <input type="range" id="vSeek" min="0" max="10" step="0.1" value="0">
+      <div class="row" style="margin-top:8px">
+        <small class="fix">Speed</small>
+        <div class="seg fix" id="spdSeg"><button data-s="1">1.00x</button><button data-s="1.01">1.01x</button><button data-s="1.02" class="on">1.02x</button></div>
+      </div>
+      <div class="row">
+        <div><small>Potong: mulai (dtk)</small><input type="number" id="tStart" min="0" step="0.1" value="0"></div>
+        <button class="btn2 fix" id="nowStart">Now</button>
+        <div><small>Selesai (dtk)</small><input type="number" id="tEnd" min="0.5" step="0.1" value="10"></div>
+        <button class="btn2 fix" id="nowEnd">Now</button>
+      </div>
+      <div class="row">
+        <label class="t"><input type="checkbox" id="fadeIn" checked>Fade In</label>
+        <label class="t"><input type="checkbox" id="fadeOut" checked>Fade Out (5s)</label>
+        <button class="btn2 fix" id="resetTrim">Reset Potong</button>
+      </div>
+      <small id="trimInfo"></small>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Buram Gambar Latar</h3>
+    <div class="seg" id="blurSeg" style="margin-bottom:10px">
+      <button data-m="brush" class="on" style="flex:1">Kuas</button>
+      <button data-m="whole" style="flex:1">Seluruh gambar</button>
+    </div>
+    <div id="brushPanel">
+      <small>Jenis kuas</small>
+      <div class="row" style="margin-top:4px">
+        <button class="btn2 bt on" id="bAdd">✎ Tambahkan buram</button>
+        <button class="btn2 bt" id="bErase">⌫ Hapus</button>
+      </div>
+      <div class="row"><label class="t"><input type="checkbox" id="brushOn">Kuas aktif (gambar tidak bisa digeser saat aktif)</label></div>
+      <div class="row"><small class="fix">Ukuran kuas</small><input type="range" id="bSize" min="1" max="100" value="20"><small class="fix" id="bSizeV">20</small></div>
+    </div>
+    <div class="row"><small class="fix">Intensitas</small><input type="range" id="bInt" min="0" max="100" value="25"><small class="fix" id="bIntV">25</small></div>
+    <button class="btn2" id="bClear" style="width:100%;padding:8px">Hapus buram</button>
+    <div style="margin-top:6px"><small>Kuas: gosok di preview untuk membuat area buram. Buram melekat pada kanvas (bukan pada gambar).</small></div>
+  </div>
+
+  <div class="card">
+    <h3>Caption &amp; Latar Caption</h3>
+    <div class="row"><label class="t"><input type="checkbox" id="capOn" checked>Tampilkan caption + latar (off = watermark saja)</label></div>
+    <textarea id="hlIn" rows="3">Caption tulis disini Caption tulis disini Caption tulis disini</textarea>
+    <div class="row" style="margin-top:8px"><small class="fix">Ukuran</small><input type="range" id="hlSize" min="3" max="9" step="0.1" value="5.4"></div>
+    <div class="row">
+      <select id="lh"><option value="1.05">Rapat (1.05)</option><option value="1.14" selected>Normal (1.14)</option><option value="1.25">Sedang (1.25)</option><option value="1.35">Renggang (1.35)</option></select>
+      <select id="al"><option value="left">Rata Kiri</option><option value="center">Rata Tengah</option></select>
+    </div>
+    <small>Drag kotak caption di preview untuk menggeser.</small>
+  </div>
+
+  <div class="card">
+    <h3>Tag &amp; Sumber</h3>
+    <div class="row"><label class="t"><input type="checkbox" id="tagOn" checked>Tag</label><input type="text" id="tagIn" value="NEWS"></div>
+    <div class="row"><label class="t"><input type="checkbox" id="crOn" checked>Sumber</label><input type="text" id="crIn" value="Sumber: Twitter/X"></div>
+    <small>Tag &amp; sumber bisa digeser bebas (juga saat caption dimatikan).</small>
+    <div class="row" style="margin-top:8px"><button class="btn2" id="resetPos">Reset Posisi Caption / Tag / Sumber</button></div>
+  </div>
+
+  <div class="card">
+    <h3>Footer</h3>
+    <div class="row"><label class="t"><input type="checkbox" id="ftOn" checked>Teks kanan</label><input type="text" id="ftIn" value="Ikuti media sosial resmi GENFEEDZ!"></div>
+    <div class="row"><label class="t"><input type="checkbox" id="gradOn" checked>Gradien gelap bawah</label></div>
+    <div class="row"><label class="t"><input type="checkbox" id="guideOn" checked>Garis bantu tengah</label><label class="t"><input type="checkbox" id="snapOn" checked>Snap ke tengah</label></div>
+    <small>Watermark TikTok @oshitive (putih) bersifat paten &amp; selalu tampil.</small>
+  </div>
+</div>
+
+<div id="prev">
+  <div id="frameBadge">1080 x 1080</div>
+  <div id="cap">
+    <div id="bgBox"><div id="tbox">
+      <img id="img" crossorigin="anonymous" alt="" draggable="false" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80">
+      <video id="vid" class="hid" playsinline muted loop crossorigin="anonymous"></video>
+      <div class="bd"></div>
+      <div class="hd" data-h="tl" style="left:-9px;top:-9px;cursor:nwse-resize"></div>
+      <div class="hd" data-h="tr" style="right:-9px;top:-9px;cursor:nesw-resize"></div>
+      <div class="hd" data-h="bl" style="left:-9px;bottom:-9px;cursor:nesw-resize"></div>
+      <div class="hd" data-h="br" style="right:-9px;bottom:-9px;cursor:nwse-resize"></div>
+    </div></div>
+    <div id="blurL"></div>
+    <div id="grad"></div>
+    <div id="gV" class="g"></div><div id="gH" class="g"></div>
+    <div id="stack">
+      <div id="metaRow">
+        <span id="tag" class="drag">NEWS</span>
+        <span id="credit" class="drag">Sumber: Twitter/X</span>
+      </div>
+      <div id="capBox" class="drag"><h2 id="hl"></h2></div>
+    </div>
+    <div id="foot">
+      <div id="wm">
+        <svg id="wmIcon" viewBox="0 0 24 24" fill="#fff"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        <span id="wmText">@oshitive</span>
+      </div>
+      <div id="footTxt"></div>
+    </div>
+    <div id="brushOv" class="hid"></div>
+    <div id="brushCur"></div>
+  </div>
+</div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const G='#142e27';
+const B='#4262b2';
+const W_='#ffffff';
+const TT=new Path2D('M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z');
+const F={
+  instagram:{w:1080,h:1080,vw:1080,vh:1080,fw:520,bot:11,foot:3.5,label:'1080 x 1080 (IG Feed 1:1)'},
+  reels:{w:1080,h:1920,vw:1080,vh:1920,fw:340,bot:34,foot:22,label:'1080 x 1920 (IG Reels 9:16)'},
+  tiktok:{w:2494,h:3324,vw:1080,vh:1440,fw:420,bot:14,foot:4,label:'2494 x 3324 (TikTok 3:4)'}
+};
+let fmt='instagram', mediaType='image', speed=1.02;
+const cap=$('cap'), img=$('img'), vid=$('vid'), tbox=$('tbox');
+const st={s:1,x:0,y:0};
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+/* ---------- mode fit / fill + warna sisa ---------- */
+function applyFit(){
+  const m=$('fitMode').value==='fit'?'contain':'cover';
+  img.style.objectFit=m;vid.style.objectFit=m;
+  $('bgBox').style.background=$('bgc').value;
+  cap.style.background=$('bgc').value;
+}
+$('fitMode').addEventListener('change',()=>{st.x=st.y=0;st.s=1;applyT();applyFit();});
+$('bgc').addEventListener('input',applyFit);
+
+/* ---------- format ---------- */
+function setFormat(k){
+  fmt=k;const f=F[k];
+  cap.style.aspectRatio=`${f.w}/${f.h}`;
+  cap.style.width=`min(100%,${f.fw}px)`;
+  $('stack').style.bottom=f.bot+'cqw';
+  $('foot').style.bottom=f.foot+'cqw';
+  $('frameBadge').textContent=f.label;
+  document.querySelectorAll('#fmtSeg button').forEach(b=>b.classList.toggle('on',b.dataset.f===k));
+  st.x=st.y=0;st.s=1;applyT();resetPos();updateDlLabel();initMask();
+}
+function updateDlLabel(){$('dl').textContent=mediaType==='video'?'Download Video':`Download PNG (${F[fmt].w}x${F[fmt].h})`;}
+document.querySelectorAll('#fmtSeg button').forEach(b=>b.onclick=()=>setFormat(b.dataset.f));
+document.querySelectorAll('#modal .opts button').forEach(b=>b.onclick=()=>{setFormat(b.dataset.f);$('modal').style.display='none';});
+
+/* ---------- drag elemen overlay ---------- */
+const offs=new Map();
+const SNAP=8;
+function hot(x,y){$('gV').classList.toggle('hot',!!x);$('gH').classList.toggle('hot',!!y);}
+function snapEl(el,o){
+  let hx=false,hy=false;
+  if($('snapOn').checked){
+    const R=cap.getBoundingClientRect(),r=el.getBoundingClientRect();
+    const dx=(R.left+R.width/2)-(r.left+r.width/2),dy=(R.top+R.height/2)-(r.top+r.height/2);
+    if(Math.abs(dx)<=SNAP){o.x+=dx;hx=true;}
+    if(Math.abs(dy)<=SNAP){o.y+=dy;hy=true;}
+    if(hx||hy)el.style.transform=`translate(${o.x}px,${o.y}px)`;
+  }
+  hot(hx,hy);
+}
+function makeDrag(el){
+  offs.set(el,{x:0,y:0});let on=false,sx,sy,ox,oy;
+  el.addEventListener('pointerdown',e=>{on=true;const o=offs.get(el);sx=e.clientX;sy=e.clientY;ox=o.x;oy=o.y;el.setPointerCapture(e.pointerId);e.preventDefault();});
+  el.addEventListener('pointermove',e=>{if(!on)return;const o=offs.get(el);o.x=ox+e.clientX-sx;o.y=oy+e.clientY-sy;el.style.transform=`translate(${o.x}px,${o.y}px)`;snapEl(el,o);});
+  ['pointerup','pointercancel'].forEach(ev=>el.addEventListener(ev,()=>{on=false;hot(false,false);}));
+}
+function resetPos(){offs.forEach((o,el)=>{o.x=o.y=0;el.style.transform='';});}
+['tag','credit','capBox'].forEach(id=>makeDrag($(id)));
+$('resetPos').onclick=()=>{resetPos();toast('Posisi di-reset');};
+
+/* ---------- teks & toggle ---------- */
+function upd(){
+  $('hl').textContent=$('hlIn').value||'Ketik judul berita';
+  $('hl').style.fontSize=$('hlSize').value+'cqw';
+  $('hl').style.lineHeight=$('lh').value;
+  $('hl').style.textAlign=$('al').value;
+  $('tag').textContent=$('tagIn').value||'TAG';
+  $('credit').textContent=$('crIn').value;
+  $('footTxt').textContent=$('ftIn').value;
+  $('capBox').classList.toggle('hid',!$('capOn').checked);
+  $('tag').classList.toggle('hid',!$('tagOn').checked);
+  $('credit').classList.toggle('hid',!$('crOn').checked);
+  $('metaRow').classList.toggle('hid',!$('tagOn').checked&&!$('crOn').checked);
+  $('footTxt').classList.toggle('hid',!$('ftOn').checked);
+  $('grad').classList.toggle('hid',!$('gradOn').checked);
+  $('gV').classList.toggle('hid',!$('guideOn').checked);
+  $('gH').classList.toggle('hid',!$('guideOn').checked);
+}
+['hlIn','hlSize','lh','al','tagIn','crIn','ftIn','capOn','tagOn','crOn','ftOn','gradOn','guideOn'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd);});
+upd();
+
+/* ---------- transform media ---------- */
+function applyT(){
+  tbox.style.transform=`translate(calc(-50% + ${st.x}px),calc(-50% + ${st.y}px)) scale(${st.s})`;
+  $('zoom').value=Math.round(st.s*100);$('zoomVal').textContent=Math.round(st.s*100)+'%';
+}
+let bd=null;
+tbox.addEventListener('pointerdown',e=>{if(e.target.classList.contains('hd'))return;bd={sx:e.clientX-st.x,sy:e.clientY-st.y};tbox.setPointerCapture(e.pointerId);});
+tbox.addEventListener('pointermove',e=>{
+  if(!bd)return;st.x=e.clientX-bd.sx;st.y=e.clientY-bd.sy;
+  let hx=false,hy=false;
+  if($('snapOn').checked){if(Math.abs(st.x)<=SNAP){st.x=0;hx=true;}if(Math.abs(st.y)<=SNAP){st.y=0;hy=true;}}
+  hot(hx,hy);applyT();
+});
+['pointerup','pointercancel'].forEach(ev=>tbox.addEventListener(ev,()=>{bd=null;hot(false,false);}));
+let rs=null;
+document.querySelectorAll('.hd').forEach(h=>{
+  h.addEventListener('pointerdown',e=>{e.stopPropagation();const r=tbox.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;rs={cx,cy,s:st.s,d:Math.hypot(e.clientX-cx,e.clientY-cy)};h.setPointerCapture(e.pointerId);});
+  h.addEventListener('pointermove',e=>{if(!rs||rs.d<5)return;st.s=Math.min(4,Math.max(.2,rs.s*Math.hypot(e.clientX-rs.cx,e.clientY-rs.cy)/rs.d));applyT();});
+  ['pointerup','pointercancel'].forEach(ev=>h.addEventListener(ev,()=>rs=null));
+});
+cap.addEventListener('wheel',e=>{e.preventDefault();st.s=Math.min(4,Math.max(.2,st.s+(e.deltaY<0?.08:-.08)));applyT();},{passive:false});
+$('zoom').oninput=e=>{st.s=e.target.value/100;applyT();};
+$('resetImg').onclick=()=>{st.x=st.y=0;st.s=1;applyT();};
+
+/* ---------- buram (blur) gambar latar ---------- */
+const blurL=$('blurL'),ov=$('brushOv'),cur=$('brushCur');
+const mask=document.createElement('canvas'),mctx=mask.getContext('2d');
+let wholeOn=false,btool='add',hasPaint=false,mRaf=0,painting=false,last=null,tcv=null;
+function initMask(){const f=F[fmt];mask.width=600;mask.height=Math.round(600*f.h/f.w);hasPaint=false;syncBlur();}
+function syncBlur(){
+  const i=+$('bInt').value;
+  cap.style.setProperty('--bl',(i*0.1).toFixed(2));
+  $('bSizeV').textContent=$('bSize').value;$('bIntV').textContent=i;
+  blurL.style.display=(i>0&&(wholeOn||hasPaint))?'block':'none';
+  const mi=wholeOn?'none':`url(${mask.toDataURL()})`;
+  blurL.style.webkitMaskImage=mi;blurL.style.maskImage=mi;
+}
+function maskUpdate(){if(mRaf)return;mRaf=requestAnimationFrame(()=>{mRaf=0;syncBlur();});}
+function brushR(){return (+$('bSize').value*0.25/100)*mask.width;}
+function stamp(x,y){
+  const r=brushR();
+  const g=mctx.createRadialGradient(x,y,r*.4,x,y,r);
+  g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');
+  mctx.globalCompositeOperation=btool==='add'?'source-over':'destination-out';
+  mctx.fillStyle=g;mctx.beginPath();mctx.arc(x,y,r,0,Math.PI*2);mctx.fill();
+}
+function mp(e){const R=cap.getBoundingClientRect();return{x:(e.clientX-R.left)/R.width*mask.width,y:(e.clientY-R.top)/R.height*mask.height};}
+function curPos(e){
+  const R=cap.getBoundingClientRect(),d=+$('bSize').value*0.5/100*R.width;
+  cur.style.width=cur.style.height=d+'px';
+  cur.style.left=(e.clientX-R.left)+'px';cur.style.top=(e.clientY-R.top)+'px';cur.style.display='block';
+}
+function paintTo(p){
+  if(!last)stamp(p.x,p.y);
+  else{
+    const dx=p.x-last.x,dy=p.y-last.y,n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/(brushR()*.25)));
+    for(let i=1;i<=n;i++)stamp(last.x+dx*i/n,last.y+dy*i/n);
+  }
+  last=p;if(btool==='add')hasPaint=true;maskUpdate();
+}
+ov.addEventListener('pointerdown',e=>{painting=true;last=null;ov.setPointerCapture(e.pointerId);curPos(e);paintTo(mp(e));e.preventDefault();});
+ov.addEventListener('pointermove',e=>{curPos(e);if(painting)paintTo(mp(e));});
+['pointerup','pointercancel'].forEach(ev=>ov.addEventListener(ev,()=>{painting=false;last=null;}));
+ov.addEventListener('pointerleave',()=>{if(!painting)cur.style.display='none';});
+function updOv(){
+  const on=$('brushOn').checked&&!wholeOn;
+  ov.classList.toggle('hid',!on);
+  if(!on)cur.style.display='none';
+}
+function setBMode(m){
+  wholeOn=m==='whole';
+  document.querySelectorAll('#blurSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('brushPanel').classList.toggle('hid',wholeOn);
+  updOv();syncBlur();
+}
+function setTool(t){
+  btool=t;$('bAdd').classList.toggle('on',t==='add');$('bErase').classList.toggle('on',t==='erase');
+  $('brushOn').checked=true;updOv();
+}
+document.querySelectorAll('#blurSeg button').forEach(b=>b.onclick=()=>setBMode(b.dataset.m));
+$('bAdd').onclick=()=>setTool('add');
+$('bErase').onclick=()=>setTool('erase');
+$('brushOn').onchange=updOv;
+$('bSize').oninput=syncBlur;
+$('bInt').oninput=syncBlur;
+$('bClear').onclick=()=>{
+  mctx.globalCompositeOperation='source-over';mctx.clearRect(0,0,mask.width,mask.height);
+  hasPaint=false;setBMode('brush');toast('Buram dihapus');
+};
+function tmpCanvas(W,H){
+  if(!tcv)tcv=document.createElement('canvas');
+  if(tcv.width!==W||tcv.height!==H){tcv.width=W;tcv.height=H;}
+  return tcv;
+}
+function applyBlurCanvas(ctx,W,H){
+  const bi=+$('bInt').value;
+  if(!(bi>0&&(wholeOn||hasPaint)))return;
+  const t=tmpCanvas(W,H),tc=t.getContext('2d');
+  tc.globalCompositeOperation='source-over';tc.clearRect(0,0,W,H);
+  tc.filter=`blur(${bi*0.001*W}px)`;
+  tc.drawImage(ctx.canvas,0,0);
+  tc.filter='none';
+  if(!wholeOn){tc.globalCompositeOperation='destination-in';tc.drawImage(mask,0,0,W,H);tc.globalCompositeOperation='source-over';}
+  ctx.drawImage(t,0,0);
+}
+
+/* ---------- media ---------- */
+function setImage(src){
+  mediaType='image';vid.pause();vid.classList.add('hid');img.classList.remove('hid');$('vidPanel').classList.add('hid');
+  img.src=src;$('stack').style.opacity=1;st.x=st.y=0;st.s=1;applyT();applyFit();updateDlLabel();
+}
+function setVideo(src){
+  mediaType='video';img.classList.add('hid');vid.classList.remove('hid');$('vidPanel').classList.remove('hid');
+  vid.src=src;vid.load();setSpeed(1.02);
+  vid.onloadedmetadata=()=>{
+    const d=vid.duration||10;$('vSeek').max=d;$('tStart').value=0;$('tEnd').value=d.toFixed(1);$('tEnd').max=d.toFixed(1);
+    trimInfo();vid.playbackRate=speed;vid.play();$('play').textContent='Pause';
+  };
+  st.x=st.y=0;st.s=1;applyT();applyFit();updateDlLabel();toast('Video dimuat, speed 1.02x');
+}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f);f.type.startsWith('video/')?setVideo(u):setImage(u);};
+$('applyUrl').onclick=()=>{const u=$('url').value.trim();if(!u)return;/\.(mp4|webm|mov)(\?.*)?$/i.test(u)?setVideo(u):setImage(u);};
+
+function fmtT(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');}
+function setSpeed(s){
+  speed=parseFloat(s);vid.playbackRate=speed;vid.defaultPlaybackRate=speed;
+  document.querySelectorAll('#spdSeg button').forEach(b=>b.classList.toggle('on',parseFloat(b.dataset.s)===speed));
+}
+document.querySelectorAll('#spdSeg button').forEach(b=>b.onclick=()=>{setSpeed(b.dataset.s);toast('Kecepatan '+b.dataset.s+'x');});
+function trimInfo(){
+  const s=parseFloat($('tStart').value)||0,e=parseFloat($('tEnd').value)||0;
+  $('trimInfo').textContent=`Durasi potongan: ${Math.max(0,e-s).toFixed(1)}s (${s.toFixed(1)}s – ${e.toFixed(1)}s)`;
+}
+['tStart','tEnd'].forEach(id=>$(id).oninput=trimInfo);
+$('nowStart').onclick=()=>{$('tStart').value=vid.currentTime.toFixed(1);trimInfo();};
+$('nowEnd').onclick=()=>{$('tEnd').value=vid.currentTime.toFixed(1);trimInfo();};
+$('resetTrim').onclick=()=>{$('tStart').value=0;$('tEnd').value=(vid.duration||10).toFixed(1);trimInfo();};
+$('play').onclick=()=>{if(vid.paused){vid.play();$('play').textContent='Pause';}else{vid.pause();$('play').textContent='Play';}};
+$('mute').onclick=()=>{vid.muted=!vid.muted;$('mute').textContent=vid.muted?'Unmute':'Mute';};
+$('vSeek').oninput=e=>{vid.currentTime=parseFloat(e.target.value);};
+
+function fadeOpacity(el){
+  let o=1;
+  if($('fadeIn').checked&&el<0.6)o=Math.min(1,el/0.6);
+  if($('fadeOut').checked&&el>=5)o=Math.max(0,1-(el-5)/0.6);
+  return o;
+}
+vid.addEventListener('timeupdate',()=>{
+  const cur=vid.currentTime,d=vid.duration||10;
+  $('vSeek').value=cur;$('vTime').textContent=`${fmtT(cur)} / ${fmtT(d)}`;
+  const s=parseFloat($('tStart').value)||0,e=parseFloat($('tEnd').value)||d;
+  if(cur>=e&&!vid.paused)vid.currentTime=s;
+  $('stack').style.opacity=mediaType==='video'?fadeOpacity(Math.max(0,cur-s)):1;
+});
+
+/* ---------- render ke canvas ---------- */
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
+function render(ctx,W,H,op){
+  const R=cap.getBoundingClientRect(),k=W/R.width;
+  const rel=el=>{const r=el.getBoundingClientRect();return{x:(r.left-R.left)*k,y:(r.top-R.top)*k,w:r.width*k,h:r.height*k};};
+  ctx.save();ctx.fillStyle=$('bgc').value;ctx.fillRect(0,0,W,H);
+
+  const m=mediaType==='video'?vid:img;
+  const mw=mediaType==='video'?vid.videoWidth:img.naturalWidth,mh=mediaType==='video'?vid.videoHeight:img.naturalHeight;
+  if(mw>0&&mh>0){
+    const ma=mw/mh,fit=$('fitMode').value==='fit';let bw,bh;
+    /* fit = contain (utuh), fill = cover (penuh) */
+    if(ma>W/H){ if(fit){bw=W;bh=W/ma;}else{bh=H;bw=H*ma;} }
+    else{ if(fit){bh=H;bw=H*ma;}else{bw=W;bh=W/ma;} }
+    ctx.save();ctx.translate(W/2+st.x*k,H/2+st.y*k);ctx.scale(st.s,st.s);ctx.drawImage(m,-bw/2,-bh/2,bw,bh);ctx.restore();
+  }
+
+  /* buram gambar latar (hanya media, sebelum overlay) */
+  applyBlurCanvas(ctx,W,H);
+
+  if($('gradOn').checked){
+    const g=rel($('grad'));const gr=ctx.createLinearGradient(0,g.y,0,g.y+g.h);
+    gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.7)');
+    ctx.fillStyle=gr;ctx.fillRect(0,g.y,W,g.h);
+  }
+
+  if(op>0.001){
+    ctx.save();ctx.globalAlpha=op;
+    ctx.textBaseline='middle';
+    if($('tagOn').checked){
+      const b=rel($('tag')),fs=parseFloat(getComputedStyle($('tag')).fontSize)*k;
+      ctx.fillStyle=W_;rr(ctx,b.x,b.y,b.w,b.h,.8*W/100);ctx.fill();
+      ctx.font=`900 ${fs}px Poppins,sans-serif`;ctx.fillStyle=B;ctx.textAlign='center';
+      ctx.fillText(($('tagIn').value||'TAG').toUpperCase(),b.x+b.w/2,b.y+b.h/2+fs*.05);
+    }
+    if($('crOn').checked){
+      const b=rel($('credit')),fs=parseFloat(getComputedStyle($('credit')).fontSize)*k;
+      ctx.fillStyle=W_;rr(ctx,b.x,b.y,b.w,b.h,.8*W/100);ctx.fill();
+      ctx.font=`700 ${fs}px Poppins,sans-serif`;ctx.fillStyle=B;ctx.textAlign='center';
+      ctx.fillText($('crIn').value.toUpperCase(),b.x+b.w/2,b.y+b.h/2+fs*.05);
+    }
+    if($('capOn').checked){
+      const b=rel($('capBox'));
+      ctx.fillStyle=W_;ctx.fillRect(b.x,b.y,b.w,b.h);
+      const hs=getComputedStyle($('hl')),fs=parseFloat(hs.fontSize)*k,lh=fs*(parseFloat($('lh').value)||1.14);
+      const h=rel($('hl'));
+      ctx.font=`900 ${fs}px Poppins,sans-serif`;
+      if('letterSpacing' in ctx)ctx.letterSpacing=(-0.025*fs)+'px';
+      const lines=[];
+      ($('hlIn').value||'').split('\n').forEach(par=>{
+        let cur='';par.split(' ').forEach(w=>{const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>h.w&&cur){lines.push(cur);cur=w;}else cur=t;});
+        lines.push(cur);
+      });
+      const center=$('al').value==='center';
+      ctx.fillStyle=B;ctx.textAlign=center?'center':'left';
+      const tx=center?h.x+h.w/2:h.x,y0=b.y+(b.h-lines.length*lh)/2+lh/2;
+      lines.forEach((l,i)=>ctx.fillText(l,tx,y0+i*lh+fs*.04));
+      if('letterSpacing' in ctx)ctx.letterSpacing='0px';
+    }
+    ctx.restore();
+  }
+
+  /* watermark paten TikTok @oshitive (putih, selalu tampil) */
+  const ic=rel($('wmIcon')),wt=rel($('wmText')),wfs=parseFloat(getComputedStyle($('wmText')).fontSize)*k;
+  ctx.save();ctx.translate(ic.x,ic.y);ctx.scale(ic.w/24,ic.h/24);
+  ctx.fillStyle=W_;ctx.fill(TT);
+  ctx.restore();
+  ctx.font=`700 ${wfs}px Poppins,sans-serif`;ctx.fillStyle=W_;ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText('@oshitive',wt.x,wt.y+wt.h/2);
+
+  if($('ftOn').checked){
+    const ft=rel($('footTxt')),ffs=parseFloat(getComputedStyle($('footTxt')).fontSize)*k;
+    ctx.font=`600 ${ffs}px Poppins,sans-serif`;ctx.fillStyle='#fff';ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText($('ftIn').value,ft.x+ft.w,ft.y+ft.h/2);
+  }
+  ctx.restore();
+}
+
+/* ---------- download ---------- */
+$('dl').onclick=async()=>{
+  const f=F[fmt];await document.fonts.ready;
+  if(mediaType==='video')return exportVideo(f);
+  try{
+    const c=document.createElement('canvas');c.width=f.w;c.height=f.h;
+    render(c.getContext('2d'),f.w,f.h,1);
+    const a=document.createElement('a');
+    a.download=`news_${($('tagIn').value||'post').replace(/[^a-z0-9]/gi,'_')}_${fmt}_${Date.now()}.png`;
+    a.href=c.toDataURL('image/png');a.click();toast('PNG berhasil di-download');
+  }catch(err){console.error(err);toast('Gagal render (gambar URL mungkin diblokir CORS, coba upload file)');}
+};
+
+async function exportVideo(f){
+  const btn=$('dl'),old=btn.textContent;btn.disabled=true;btn.textContent='Merekam 0%...';
+  const wasMuted=vid.muted;
+  try{
+    const c=document.createElement('canvas');c.width=f.vw;c.height=f.vh;const ctx=c.getContext('2d');
+    const tracks=[...c.captureStream(30).getVideoTracks()];
+    const s=Math.max(0,parseFloat($('tStart').value)||0);
+    let e=parseFloat($('tEnd').value);if(!e||e<=s)e=vid.duration||10;e=Math.min(e,vid.duration||e);
+    vid.pause();vid.muted=false;vid.currentTime=s;vid.playbackRate=speed;
+    await new Promise(r=>setTimeout(r,300));
+    await vid.play();vid.playbackRate=speed;
+    try{const cs=(vid.captureStream||vid.mozCaptureStream).call(vid);tracks.push(...cs.getAudioTracks());}catch(_){}
+    const mime=['video/mp4;codecs=avc1,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+    const rec=new MediaRecorder(new MediaStream(tracks),mime?{mimeType:mime,videoBitsPerSecond:8e6}:undefined);
+    const chunks=[];
+    rec.ondataavailable=ev=>{if(ev.data.size)chunks.push(ev.data);};
+    rec.onstop=()=>{
+      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(chunks,{type:mime||'video/webm'}));
+      a.download=`news_video_${fmt}_${Date.now()}.${mime.includes('mp4')?'mp4':'webm'}`;a.click();
+      vid.muted=wasMuted;btn.disabled=false;btn.textContent=old;toast('Video berhasil di-download');
+    };
+    rec.start();
+    const loop=()=>{
+      const cur=vid.currentTime,el=Math.max(0,cur-s);
+      btn.textContent=`Merekam ${Math.min(100,Math.round(el/Math.max(.5,e-s)*100))}%...`;
+      render(ctx,f.vw,f.vh,mediaType==='video'?fadeOpacity(el):1);
+      if(!vid.ended&&cur<e-0.05)requestAnimationFrame(loop);
+      else{vid.pause();setTimeout(()=>{if(rec.state==='recording')rec.stop();},200);}
+    };
+    requestAnimationFrame(loop);
+  }catch(err){console.error(err);vid.muted=wasMuted;btn.disabled=false;btn.textContent=old;toast('Gagal merekam video');}
+}
+
+applyFit();
+setFormat('instagram');
+document.fonts.ready.then(()=>{upd();applyT();});
+</script>
+</body>
+</html>
