@@ -57,6 +57,7 @@ small{color:#94a3b8;font-size:11px}
 #tbox .bd{position:absolute;inset:0;border:2px dashed #ffffff90;pointer-events:none}
 .hd{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #333;z-index:3}
 #grad{position:absolute;left:0;right:0;bottom:0;height:45%;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+#blueL{position:absolute;left:0;right:0;bottom:0;z-index:1;pointer-events:none}
 #stack{position:absolute;left:5cqw;right:5cqw;bottom:11cqw;z-index:2;pointer-events:none}
 #stack .drag{pointer-events:auto;cursor:move;touch-action:none}
 #metaRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2cqw}
@@ -193,8 +194,9 @@ small{color:#94a3b8;font-size:11px}
 
   <div class="card">
     <h3>Footer</h3>
-    <div class="row"><label class="t"><input type="checkbox" id="ftOn" checked>Teks kanan</label><input type="text" id="ftIn" value="Ikuti media sosial resmi OSHITIVE!"></div>
-    <div class="row"><label class="t"><input type="checkbox" id="gradOn" checked>Gradien gelap bawah</label></div>
+    <div class="row"><label class="t"><input type="checkbox" id="ftOn" checked>Teks kanan</label><input type="text" id="ftIn" value="Ikuti media sosial resmi GENFEEDZ!"></div>
+    <div class="row"><label class="t"><input type="checkbox" id="blueOn" checked>Gradasi biru bawah (#4262b2)</label></div>
+    <div class="row"><label class="t"><input type="checkbox" id="gradOn">Gradien gelap bawah</label></div>
     <div class="row"><label class="t"><input type="checkbox" id="guideOn" checked>Garis bantu tengah</label><label class="t"><input type="checkbox" id="snapOn" checked>Snap ke tengah</label></div>
     <small>Watermark TikTok @oshitive (putih) bersifat paten &amp; selalu tampil.</small>
   </div>
@@ -214,6 +216,7 @@ small{color:#94a3b8;font-size:11px}
     </div></div>
     <div id="blurL"></div>
     <div id="grad"></div>
+    <div id="blueL" class="hid"></div>
     <div id="gV" class="g"></div><div id="gH" class="g"></div>
     <div id="stack">
       <div id="metaRow">
@@ -244,9 +247,9 @@ const B='#4262b2';
 const W_='#ffffff';
 const TT=new Path2D('M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z');
 const F={
-  instagram:{w:1080,h:1080,vw:1080,vh:1080,fw:520,bot:11,foot:3.5,label:'1080 x 1080 (IG Feed 1:1)'},
-  reels:{w:1080,h:1920,vw:1080,vh:1920,fw:340,bot:34,foot:22,label:'1080 x 1920 (IG Reels 9:16)'},
-  tiktok:{w:2494,h:3324,vw:1080,vh:1440,fw:420,bot:14,foot:4,label:'2494 x 3324 (TikTok 3:4)'}
+  instagram:{w:1080,h:1080,vw:1080,vh:1080,fw:520,bot:11,foot:3.5,sb:38,gb:32,label:'1080 x 1080 (IG Feed 1:1)'},
+  reels:{w:1080,h:1920,vw:1080,vh:1920,fw:340,bot:34,foot:22,sb:30,gb:30,label:'1080 x 1920 (IG Reels 9:16)'},
+  tiktok:{w:2494,h:3324,vw:1080,vh:1440,fw:420,bot:14,foot:4,sb:28,gb:35,label:'2494 x 3324 (TikTok 3:4)'}
 };
 let fmt='instagram', mediaType='image', speed=1.02;
 const cap=$('cap'), img=$('img'), vid=$('vid'), tbox=$('tbox');
@@ -273,7 +276,7 @@ function setFormat(k){
   $('foot').style.bottom=f.foot+'cqw';
   $('frameBadge').textContent=f.label;
   document.querySelectorAll('#fmtSeg button').forEach(b=>b.classList.toggle('on',b.dataset.f===k));
-  st.x=st.y=0;st.s=1;applyT();resetPos();updateDlLabel();initMask();
+  st.x=st.y=0;st.s=1;applyT();resetPos();updateDlLabel();initMask();upd();
 }
 function updateDlLabel(){$('dl').textContent=mediaType==='video'?'Download Video':`Download PNG (${F[fmt].w}x${F[fmt].h})`;}
 document.querySelectorAll('#fmtSeg button').forEach(b=>b.onclick=()=>setFormat(b.dataset.f));
@@ -319,10 +322,14 @@ function upd(){
   $('metaRow').classList.toggle('hid',!$('tagOn').checked&&!$('crOn').checked);
   $('footTxt').classList.toggle('hid',!$('ftOn').checked);
   $('grad').classList.toggle('hid',!$('gradOn').checked);
+  const bf=F[fmt],bt=bf.sb+bf.gb,bs=(bf.sb/bt*100).toFixed(2);
+  $('blueL').style.height=bt+'%';
+  $('blueL').style.background=`linear-gradient(to top,${B} 0%,${B} ${bs}%,rgba(66,98,178,0) 100%)`;
+  $('blueL').classList.toggle('hid',!$('blueOn').checked);
   $('gV').classList.toggle('hid',!$('guideOn').checked);
   $('gH').classList.toggle('hid',!$('guideOn').checked);
 }
-['hlIn','hlSize','lh','al','tagIn','crIn','ftIn','capOn','tagOn','crOn','ftOn','gradOn','guideOn'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd);});
+['hlIn','hlSize','lh','al','tagIn','crIn','ftIn','capOn','tagOn','crOn','ftOn','gradOn','blueOn','guideOn'].forEach(id=>{$(id).addEventListener('input',upd);$(id).addEventListener('change',upd);});
 upd();
 
 /* ---------- transform media ---------- */
@@ -504,6 +511,13 @@ function render(ctx,W,H,op){
     const g=rel($('grad'));const gr=ctx.createLinearGradient(0,g.y,0,g.y+g.h);
     gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.7)');
     ctx.fillStyle=gr;ctx.fillRect(0,g.y,W,g.h);
+  }
+
+  if($('blueOn').checked){
+    const g=rel($('blueL')),sf=F[fmt].sb/(F[fmt].sb+F[fmt].gb);
+    const gr=ctx.createLinearGradient(0,g.y,0,g.y+g.h);
+    gr.addColorStop(0,'rgba(66,98,178,0)');gr.addColorStop(1-sf,B);gr.addColorStop(1,B);
+    ctx.fillStyle=gr;ctx.fillRect(0,g.y,W,g.h+1);
   }
 
   if(op>0.001){
