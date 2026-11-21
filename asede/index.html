@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carousel Preview: AKB48 vs JKT48 Ticket Price Comparison</title>
+    <title>Carousel Exporter: AKB48 Yoyogi vs JKT48 Unesa Ticket Comparison</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,13 +12,18 @@
             theme: {
                 extend: {
                     colors: {
+                        navy: {
+                            DEFAULT: '#101726',
+                            card: '#162035',
+                            darker: '#0a0e19',
+                            border: '#243252'
+                        },
                         brand: {
-                            yellow: '#FACC15',
-                            red: '#F43F5E',
-                            purple: '#A855F7',
-                            dark: '#0D0F17',
-                            card: '#161926',
-                            border: '#2A2F45'
+                            blue: '#4262b2',
+                            blueHover: '#335099',
+                            cyan: '#06b6d4',
+                            amber: '#f59e0b',
+                            red: '#ef4444'
                         }
                     },
                     fontFamily: {
@@ -32,264 +37,264 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- html2canvas for High-Res PNG Exporter -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #08090E;
-            color: #F3F4F6;
-        }
-        
-        /* Carousel Slide Ratio Styles */
-        .slide-ratio-4-5 {
-            aspect-ratio: 4 / 5;
-        }
-        .slide-ratio-1-1 {
-            aspect-ratio: 1 / 1;
+            background-color: #0a0e19;
+            color: #f3f4f6;
         }
 
-        /* Custom Scrollbars */
+        /* Carousel Ratios */
+        .ratio-4-5 {
+            aspect-ratio: 4 / 5;
+            width: 100%;
+        }
+        .ratio-1-1 {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+        }
+
+        /* Canvas Export Offscreen Render Box Fix */
+        .exporting-render {
+            transform: none !important;
+            border-radius: 0 !important;
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0d0f17;
+            background: #101726;
         }
         ::-webkit-scrollbar-thumb {
-            background: #2a2f45;
+            background: #243252;
             border-radius: 9999px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #facc15;
-        }
-
-        /* Toast Animation */
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-toast {
-            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            background: #4262b2;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-brand-yellow selection:text-black">
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-brand-blue selection:text-white">
 
     <!-- Top Navigation Header -->
-    <header class="border-b border-brand-border bg-brand-dark/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+    <header class="border-b border-navy-border bg-navy/95 backdrop-blur sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-yellow via-brand-red to-brand-purple flex items-center justify-center shadow-lg shadow-brand-yellow/10">
-                    <i class="fa-solid fa-layer-group text-black font-black text-lg"></i>
+                <div class="w-10 h-10 rounded-xl bg-brand-blue flex items-center justify-center shadow-lg shadow-brand-blue/30 text-white font-black text-lg">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-base md:text-lg tracking-tight text-white flex items-center gap-2">
-                        Pop Culture Carousel Creator
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-yellow/10 text-brand-yellow border border-brand-yellow/30">Media Feed</span>
+                    <h1 class="font-black text-base md:text-lg tracking-tight text-white flex items-center gap-2">
+                        Media Carousel Exporter
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-blue/20 text-blue-300 border border-brand-blue/40 uppercase">HQ PNG Export</span>
                     </h1>
-                    <p class="text-xs text-gray-400">AKB48 Yoyogi vs JKT48 Unesa Ticket Price Breakdown</p>
+                    <p class="text-xs text-slate-400">AKB48 Yoyogi vs JKT48 UNESA Ticket Comparison</p>
                 </div>
             </div>
 
-            <!-- Toolbar Controls -->
+            <!-- Toolbar Controls & Global Exporter -->
             <div class="flex items-center flex-wrap gap-2">
-                <!-- Ratio Toggle -->
-                <div class="bg-brand-card p-1 rounded-lg border border-brand-border flex items-center gap-1 text-xs font-semibold">
-                    <button id="btnRatio45" onclick="setAspectRatio('4-5')" class="px-2.5 py-1.5 rounded-md bg-brand-yellow text-black font-bold transition">
-                        <i class="fa-solid fa-[#000] fa-mobile-screen mr-1"></i> 4:5 (IG Feed)
+                <!-- Ratio Switcher -->
+                <div class="bg-navy-card p-1 rounded-lg border border-navy-border flex items-center gap-1 text-xs font-semibold">
+                    <button id="btnRatio45" onclick="setAspectRatio('4-5')" class="px-3 py-1.5 rounded-md bg-brand-blue text-white font-bold transition shadow-sm">
+                        <i class="fa-solid fa-mobile-screen mr-1"></i> 4:5 (1080x1350)
                     </button>
-                    <button id="btnRatio11" onclick="setAspectRatio('1-1')" class="px-2.5 py-1.5 rounded-md text-gray-400 hover:text-white transition">
+                    <button id="btnRatio11" onclick="setAspectRatio('1-1')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition">
                         <i class="fa-solid fa-square mr-1"></i> 1:1 (Square)
                     </button>
                 </div>
 
-                <!-- Export / Copy Captions -->
-                <button onclick="copyAllCaptions()" class="px-3 py-1.5 rounded-lg bg-brand-card hover:bg-brand-border border border-brand-border text-xs font-semibold text-gray-200 hover:text-white transition flex items-center gap-2">
-                    <i class="fa-regular fa-copy text-brand-yellow"></i> Copy Caption
+                <!-- Export Current Slide PNG -->
+                <button onclick="exportCurrentSlidePNG()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95">
+                    <i class="fa-solid fa-download"></i> Download Slide (PNG)
+                </button>
+
+                <!-- Batch Download All Slides -->
+                <button onclick="exportAllSlidesPNG()" class="px-3.5 py-1.5 rounded-lg bg-brand-blue hover:bg-brand-blueHover text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-brand-blue/20 active:scale-95">
+                    <i class="fa-solid fa-file-zipper"></i> Export semua Slide (6 PNG)
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
+    <!-- Main Workspace -->
     <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        <!-- Left Column: Interactive Carousel Canvas Preview (7 cols) -->
-        <section class="lg:col-span-7 flex flex-col items-center justify-center w-full">
+        <!-- Left Column: Slide Canvas Preview & Controls (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col items-center w-full">
             
-            <!-- Carousel Outer Frame Card -->
-            <div class="w-full max-w-md bg-brand-card rounded-2xl border border-brand-border p-4 shadow-2xl relative">
+            <div class="w-full max-w-md bg-navy-card rounded-2xl border border-navy-border p-4 shadow-2xl relative">
                 
-                <!-- Instagram Post Header UI Mockup -->
-                <div class="flex items-center justify-between pb-3 mb-3 border-b border-brand-border/60">
+                <!-- Instagram Header Simulation -->
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-navy-border">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px]">
-                            <div class="w-full h-full rounded-full bg-black flex items-center justify-center font-bold text-xs text-brand-yellow">
-                                48
-                            </div>
+                        <div class="w-8 h-8 rounded-full bg-brand-blue p-[2px] flex items-center justify-center font-black text-xs text-white shadow">
+                            48
                         </div>
                         <div>
                             <p class="text-xs font-bold text-white leading-tight flex items-center gap-1">
-                                popculture.news
-                                <i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>
+                                media.popculture
+                                <i class="fa-solid fa-circle-check text-brand-blue text-[10px]"></i>
                             </p>
-                            <p class="text-[10px] text-gray-400">Tokyo x Surabaya • Carousel</p>
+                            <p class="text-[10px] text-slate-400">Tokyo x Surabaya • Edukasi Concert</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 text-gray-400 text-sm">
-                        <span id="slideCounter" class="text-xs font-mono font-bold bg-brand-dark px-2.5 py-1 rounded-full border border-brand-border text-brand-yellow">
+                    <div class="flex items-center gap-2">
+                        <span id="slideCounter" class="text-xs font-mono font-bold bg-navy px-2.5 py-1 rounded-full border border-navy-border text-brand-cyan">
                             1 / 6
                         </span>
-                        <i class="fa-solid fa-ellipsis"></i>
                     </div>
                 </div>
 
-                <!-- CAROUSEL SLIDE CONTAINER -->
-                <div id="slideViewport" class="relative w-full rounded-xl overflow-hidden bg-brand-dark border border-brand-border slide-ratio-4-5 transition-all duration-300 shadow-inner flex flex-col justify-between p-5 md:p-6 select-none">
+                <!-- CAROUSEL SLIDE CANVAS CONTAINER -->
+                <div id="slideViewport" class="relative w-full rounded-xl overflow-hidden bg-navy border border-navy-border ratio-4-5 transition-all duration-300 shadow-inner flex flex-col justify-between p-5 md:p-6 select-none">
                     
-                    <!-- Background Pattern Layer -->
-                    <div class="absolute inset-0 bg-[radial-gradient(#2a2f45_1px,transparent_1px)] [background-size:16px_16px] opacity-30 pointer-events-none"></div>
+                    <!-- Grid Overlay Background -->
+                    <div class="absolute inset-0 bg-[radial-gradient(#243252_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
 
-                    <!-- SLIDE CONTENT INSIDE -->
+                    <!-- SLIDE DYNAMIC INNER CONTENT -->
                     <div id="slideContent" class="relative z-10 h-full flex flex-col justify-between">
-                        <!-- Dynamic content injected here via JS -->
+                        <!-- Content Injected via JS -->
                     </div>
 
                     <!-- Navigation Arrow Buttons Overlay -->
-                    <button onclick="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white border border-white/20 flex items-center justify-center transition backdrop-blur z-20 active:scale-95">
+                    <button onclick="prevSlide()" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-navy-darker/80 hover:bg-navy-darker text-white border border-navy-border flex items-center justify-center transition backdrop-blur z-20 active:scale-95">
                         <i class="fa-solid fa-chevron-left text-xs"></i>
                     </button>
-                    <button onclick="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white border border-white/20 flex items-center justify-center transition backdrop-blur z-20 active:scale-95">
+                    <button onclick="nextSlide()" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-navy-darker/80 hover:bg-navy-darker text-white border border-navy-border flex items-center justify-center transition backdrop-blur z-20 active:scale-95">
                         <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
 
-                <!-- Carousel Footer Navigation & Dot Indicators -->
+                <!-- Footer Indicators & Quick Slide Download -->
                 <div class="mt-4 flex items-center justify-between">
-                    <!-- Left Social Action Icons -->
-                    <div class="flex items-center gap-4 text-gray-400 text-lg">
-                        <i class="fa-regular fa-heart hover:text-red-500 cursor-pointer transition"></i>
-                        <i class="fa-regular fa-comment hover:text-brand-yellow cursor-pointer transition"></i>
-                        <i class="fa-regular fa-paper-plane hover:text-brand-yellow cursor-pointer transition"></i>
+                    <div class="flex items-center gap-1.5" id="dotIndicators">
+                        <!-- Dots -->
                     </div>
 
-                    <!-- Slide Dots -->
-                    <div id="dotIndicators" class="flex items-center gap-1.5">
-                        <!-- Dots rendered dynamically -->
-                    </div>
-
-                    <!-- Right Bookmark Icon -->
-                    <div class="text-gray-400 text-lg">
-                        <i class="fa-regular fa-bookmark hover:text-brand-yellow cursor-pointer transition"></i>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportCurrentSlidePNG()" class="px-3 py-1 bg-brand-blue/20 hover:bg-brand-blue/40 border border-brand-blue/40 text-blue-300 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-image"></i> Download PNG Ini
+                        </button>
                     </div>
                 </div>
 
-                <!-- Helper Text -->
-                <p class="text-center text-[11px] text-gray-500 mt-3 font-medium flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-keyboard"></i> Gunakan tombol keyboard <kbd class="px-1 py-0.5 bg-brand-dark rounded border border-brand-border text-[9px] font-mono">←</kbd> <kbd class="px-1 py-0.5 bg-brand-dark rounded border border-brand-border text-[9px] font-mono">→</kbd> untuk navigasi slide
+                <p class="text-center text-[11px] text-slate-500 mt-3 font-medium">
+                    <i class="fa-solid fa-keyboard mr-1"></i> Gunakan tombol keyboard <kbd class="px-1 py-0.5 bg-navy rounded border border-navy-border text-[9px] font-mono">←</kbd> <kbd class="px-1 py-0.5 bg-navy rounded border border-navy-border text-[9px] font-mono">→</kbd> untuk berpindah slide
                 </p>
 
             </div>
         </section>
 
-
-        <!-- Right Column: Slide Text Details, Notes & Image Manager (5 cols) -->
+        <!-- Right Column: Editors, Image Uploader & Copywriting Panel (5 Cols) -->
         <section class="lg:col-span-5 flex flex-col gap-5 w-full">
             
-            <!-- Slide Selector Cards / Tabs -->
-            <div class="bg-brand-card rounded-2xl border border-brand-border p-4 shadow-lg">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-list-ol text-brand-yellow"></i> Pilih Slide untuk Detail
+            <!-- Slide Quick Selector Tabs -->
+            <div class="bg-navy-card rounded-2xl border border-navy-border p-4 shadow-lg">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-layer-group text-brand-blue mr-1"></i> Navigasi 6 Slide</span>
+                    <span class="text-[10px] text-brand-cyan">Klik slide untuk edit & preview</span>
                 </h2>
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-2" id="slideTabButtons">
+                <div class="grid grid-cols-6 gap-2" id="slideTabButtons">
                     <!-- Dynamic Slide Tabs -->
                 </div>
             </div>
 
-            <!-- Active Slide Content Details Card -->
-            <div class="bg-brand-card rounded-2xl border border-brand-border p-5 shadow-lg flex flex-col justify-between min-h-[360px]">
+            <!-- Active Slide Editor & Image Upload Box -->
+            <div class="bg-navy-card rounded-2xl border border-navy-border p-5 shadow-lg flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center justify-between border-b border-brand-border pb-3 mb-4">
+                    <div class="flex items-center justify-between border-b border-navy-border pb-3 mb-4">
                         <div class="flex items-center gap-2">
-                            <span id="detailBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-yellow/10 text-brand-yellow border border-brand-yellow/30">
+                            <span id="detailBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-blue/20 text-blue-300 border border-brand-blue/40">
                                 Slide 1
                             </span>
                             <h3 id="detailTitle" class="font-bold text-white text-sm">Hook / Cover</h3>
                         </div>
-                        <button onclick="copyCurrentSlideText()" class="px-3 py-1 bg-brand-dark hover:bg-brand-border border border-brand-border rounded-lg text-xs font-semibold text-gray-200 hover:text-white transition flex items-center gap-1.5">
-                            <i class="fa-regular fa-copy text-brand-yellow"></i> Copy Text Slide
+                        <button onclick="copyCurrentSlideText()" class="px-2.5 py-1 bg-navy hover:bg-navy-border border border-navy-border rounded-lg text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy text-brand-cyan"></i> Copy Teks
                         </button>
                     </div>
 
-                    <!-- Detailed Content Text Area -->
+                    <!-- Slide Copywriting Display -->
                     <div class="space-y-4">
                         <div>
-                            <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">Teks Utama / Copywriting</label>
-                            <div id="detailTextContent" class="bg-brand-dark p-3.5 rounded-xl border border-brand-border text-xs text-gray-200 leading-relaxed font-mono whitespace-pre-wrap select-all">
-                                <!-- Text content injected here -->
+                            <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Copywriting Slide Aktif</label>
+                            <div id="detailTextContent" class="bg-navy p-3.5 rounded-xl border border-navy-border text-xs text-slate-200 leading-relaxed font-mono whitespace-pre-wrap select-all">
+                                <!-- Text content -->
                             </div>
                         </div>
 
-                        <!-- Layout & Visual Instructions Note -->
-                        <div id="imageNoteBox" class="bg-brand-dark/60 p-3.5 rounded-xl border border-dashed border-brand-border">
-                            <h4 class="text-xs font-bold text-brand-yellow flex items-center gap-2 mb-1">
-                                <i class="fa-solid fa-image"></i> Panduan Tata Letak Gambar
+                        <!-- Image File Uploader Section for Slides 2 & 3 -->
+                        <div id="imageUploaderContainer" class="p-4 rounded-xl bg-navy border border-brand-blue/30 space-y-3 hidden">
+                            <h4 class="text-xs font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-image text-brand-blue"></i> Upload Gambar Seating Chart Lokal / Link URL
                             </h4>
-                            <p id="detailImageNote" class="text-xs text-gray-400 leading-relaxed">
-                                Slide ini dapat diisi ilustrasi visual atau grafik typography headline yang mencolok.
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Custom Image Upload / URL Input for Slides 2 & 3 -->
-                <div id="imageUploaderContainer" class="mt-4 pt-3 border-t border-brand-border hidden">
-                    <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-1.5">
-                        <i class="fa-solid fa-link text-brand-yellow mr-1"></i> Ganti Gambar Seating Chart Preview:
-                    </label>
-                    <div class="flex gap-2">
-                        <input type="text" id="imageUrlInput" placeholder="Masukkan URL Gambar (https://...)" class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-yellow">
-                        <button onclick="updateSlideImage()" class="px-3 py-1.5 bg-brand-yellow text-black font-bold rounded-lg text-xs hover:bg-yellow-400 transition whitespace-nowrap">
-                            Apply
-                        </button>
+                            <!-- File Upload Local -->
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-semibold block mb-1">1. Choose Local Image File (HP / PC):</label>
+                                <input type="file" id="localFileInput" accept="image/*" onchange="handleLocalFileUpload(event)" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-blue file:text-white hover:file:bg-brand-blueHover cursor-pointer bg-navy-card p-1 rounded-lg border border-navy-border">
+                            </div>
+
+                            <!-- Image URL Input -->
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-semibold block mb-1">2. Atau Gunakan URL Web Gambar:</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="imageUrlInput" placeholder="https://..." class="w-full bg-navy-card border border-navy-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-blue">
+                                    <button onclick="updateSlideImageFromUrl()" class="px-3 py-1.5 bg-brand-blue text-white font-bold rounded-lg text-xs hover:bg-brand-blueHover transition whitespace-nowrap">
+                                        Set Link
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- Copy Full Post Caption Box -->
-            <div class="bg-brand-card rounded-2xl border border-brand-border p-5 shadow-lg">
+            <!-- Full Caption Copy Ready to Post -->
+            <div class="bg-navy-card rounded-2xl border border-navy-border p-5 shadow-lg">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-align-left text-brand-yellow"></i> Full Post Caption Text
+                        <i class="fa-solid fa-align-left text-brand-blue"></i> Full Social Media Caption Text
                     </h3>
-                    <button onclick="copyFullCaptionText()" class="text-xs text-brand-yellow hover:underline font-semibold flex items-center gap-1">
-                        <i class="fa-regular fa-copy"></i> Salin Semua
+                    <button onclick="copyFullCaptionText()" class="text-xs text-brand-cyan hover:underline font-semibold flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i> Salin Caption
                     </button>
                 </div>
-                <textarea id="fullCaptionTextarea" readonly class="w-full h-32 bg-brand-dark p-3 rounded-xl border border-brand-border text-xs text-gray-300 font-mono resize-none focus:outline-none">
-Gaji UMR Indonesia, tapi harga tiket standar Tokyo?! 😱🔥
+                <textarea id="fullCaptionTextarea" readonly class="w-full h-36 bg-navy p-3 rounded-xl border border-navy-border text-xs text-slate-300 font-mono resize-none focus:outline-none">
+Harga Tiket JKT48 Bikin Boncos: Di Jepang Cuma Seminggu Gaji, di Sini Habis Sebulan UMR! 😱🔥
 
-Yuk intip perbandingan harga tiket konser AKB48 di Yoyogi National Gymnasium (Tokyo) lawan JKT48 di Graha Unesa (Surabaya).
+Mari kita bedah perbedaan harga tiket konser AKB48 di Yoyogi National Gymnasium (Tokyo) lawan JKT48 13th Anniversary Concert di Graha UNESA (Surabaya).
 
-📌 AKB48 (Yoyogi, Tokyo):
-• Kapasitas: ~12.000 Penonton
-• Termahal: 22.000 Yen (~Rp 2,5 Juta)
-• Termurah: 5.000 Yen (~Rp 570 Ribu)
+📌 AKB48 Live at Yoyogi (Tokyo) — Kapasitas ~12.000
+• Arena Seat (Termahal): 22.000 Yen (~Rp 2,5 Juta)
+• Photographer Seat: 18.000 Yen (~Rp 2 Juta)
+• Stand Seat: 6.800 - 12.000 Yen (~Rp 770rb - Rp 1,3 Juta)
+• U-19 Seat (Termurah): 5.000 Yen (~Rp 570 Ribu)
 
-📌 JKT48 (Graha Unesa, Surabaya):
-• Kapasitas: ~6.000 Penonton
-• Termahal: Rp 3.500.000 (CAT 1 Pre-sale)
-• Termurah: Rp 450.000 (CAT 7)
+📌 JKT48 "Ayo Senyumlah" Graha UNESA (Surabaya) — Kapasitas ~6.000
+• CAT 1 (Termahal): Rp 3.500.000 (Soundcheck, Group Photo, Lightstick, Kaos, Merch)
+• CAT 2: Rp 2.000.000 / Rp 2.200.000
+• CAT 3: Rp 1.100.000 / Rp 1.200.000
+• CAT 4-6: Rp 500.000 - Rp 1.000.000
+• CAT 7 (Termurah): Rp 450.000
 
-💡 UMR Tokyo vs Surabaya:
-• UMR Tokyo ~Rp 20 Jt/bulan (Tiket VIP cuma ~12% gaji).
-• UMK Surabaya ~Rp 4,7 Jt/bulan (Tiket VIP menyedot 75%-100% gaji sebulan!).
+💡 ADU BEBAN GIGI KANTONG:
+- Di Jepang: UMR Tokyo ~Rp 20 Juta+. Tiket VIP Rp 2,5 Juta hanya ~12% gaji sebulan.
+- Di Indonesia: UMK Surabaya ~Rp 4,7 Juta. Tiket CAT 1 Rp 3,5 Juta menyedot 75% hingga 100%+ gaji sebulan!
 
-Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket ini worth it atau kemahalan? Tulis opini kamu di komentar! 👇
+Menurutmu, dengan bonus photoshoot & merchandise eksklusif, harga Rp 3.5 Juta ini wajar atau kemahalan? Tulis opini kamu di komentar! 👇
 
-#JKT48 #AKB48 #PopCultureNews #KonserJKT48 #AyoSenyumlah #IndoMusik #Wota #WotaJKT48 #BeritaKonser #Jpop #IdolGroup
+#JKT48 #AKB48 #PopCulture #AyoSenyumlah #KonserJKT48 #WotaJKT48 #BeritaKonser #Jpop #IdolGroup #Surabaya #Tokyo
                 </textarea>
             </div>
 
@@ -297,414 +302,371 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
 
     </main>
 
-    <!-- Toast Notification Container -->
+    <!-- Toast Notification Overlay -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
-        <div class="bg-brand-yellow text-black font-bold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 border border-black/20 text-xs animate-toast">
-            <i class="fa-solid fa-circle-check text-sm"></i>
-            <span id="toastMessage">Teks berhasil disalin ke clipboard!</span>
+        <div class="bg-brand-blue text-white font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 border border-white/20 text-xs animate-bounce">
+            <i class="fa-solid fa-circle-check text-base text-brand-cyan"></i>
+            <span id="toastMessage">Berhasil mengekspor gambar PNG!</span>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-brand-border bg-brand-dark py-4 text-center text-xs text-gray-500">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2">
-            <p>© 2026 Media Pop Culture Slide Generator. Custom Single-File Visual Editor.</p>
-            <p class="text-gray-400">Desain optimized untuk Instagram Carousel (4:5 Feed) & X Thread</p>
-        </div>
-    </footer>
+    <!-- Hidden Container for Batch Offscreen Exporting -->
+    <div id="offscreenExportContainer" class="fixed -left-[9999px] -top-[9999px] pointer-events-none"></div>
 
-    <!-- JavaScript Carousel Logic -->
+    <!-- JavaScript Application Logic -->
     <script>
-        // SLIDE DATA CONFIGURATION
+        // SLIDES DATA CONFIGURATION
         const slidesData = [
             {
                 id: 1,
-                category: "POP CULTURE BREAKING NEWS",
+                category: "KONTROVERSI TIKET KONSER",
                 title: "Hook / Cover",
-                bgGradient: "from-red-950/40 via-brand-dark to-brand-dark",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-2">
-                        <!-- Top Tag -->
+                        <!-- Top Header Badge -->
                         <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-md bg-red-600 text-white font-extrabold text-[10px] tracking-widest uppercase shadow-lg shadow-red-600/30">
-                                🔥 ADU KONSER 48 GROUP
+                            <span class="px-3 py-1 rounded-md bg-brand-blue text-white font-black text-[10px] tracking-widest uppercase shadow-md shadow-brand-blue/30">
+                                🚨 POP CULTURE DILEMMA
                             </span>
-                            <span class="text-gray-400 text-xs font-mono">01/06</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">01/06</span>
                         </div>
 
-                        <!-- Main Headline -->
+                        <!-- Main Headline & Subheadline -->
                         <div class="my-auto space-y-3">
-                            <div class="inline-block px-3 py-1 rounded-full bg-brand-yellow/10 border border-brand-yellow/30 text-brand-yellow text-xs font-bold">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-navy-card border border-brand-blue/40 text-brand-cyan text-xs font-bold">
                                 🇯🇵 TOKYO VS SURABAYA 🇮🇩
                             </div>
-                            <h2 class="text-2xl md:text-3xl font-black text-white leading-tight uppercase tracking-tight">
-                                HARGA TIKET JKT48 <span class="text-brand-yellow underline decoration-brand-red decoration-4">BIKIN BONCOS</span>
+                            <h2 class="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
+                                HARGA TIKET JKT48 <span class="text-brand-amber underline decoration-brand-blue decoration-4">BIKIN BONCOS</span>
                             </h2>
-                            <p class="text-sm md:text-base font-bold text-gray-200 leading-snug">
+                            <p class="text-sm md:text-base font-bold text-slate-200 leading-snug">
                                 "Di Jepang Cuma Seminggu Gaji, di Sini Habis Sebulan UMR!"
                             </p>
-                            <div class="p-3 rounded-xl bg-brand-card/80 border border-brand-border text-xs text-gray-300 font-medium">
-                                Membandingkan Konser <strong class="text-white">AKB48 di Yoyogi (Tokyo)</strong> vs <strong class="text-white">JKT48 di Graha Unesa (Surabaya)</strong>.
+                            
+                            <div class="p-3.5 rounded-xl bg-navy-card/90 border border-navy-border text-xs text-slate-300 leading-relaxed">
+                                Membandingkan Konser <strong class="text-white">AKB48 di Yoyogi National Gymnasium</strong> vs <strong class="text-white">JKT48 di Graha UNESA Surabaya</strong>. Mengapa tiket di Indonesia justru jauh lebih mahal?
                             </div>
                         </div>
 
-                        <!-- Bottom Footer -->
-                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400 font-semibold">
-                            <span>Geser ke kiri fakta lengkapnya</span>
-                            <span class="text-brand-yellow font-bold flex items-center gap-1">SWIPE <i class="fa-solid fa-arrow-right"></i></span>
+                        <!-- Footer Gesture Indicator -->
+                        <div class="pt-3 border-t border-navy-border flex items-center justify-between text-xs text-slate-400 font-semibold">
+                            <span>Geser untuk cek rincian datanya</span>
+                            <span class="text-brand-cyan font-bold flex items-center gap-1.5">SWIPE <i class="fa-solid fa-arrow-right"></i></span>
                         </div>
                     </div>
                 `,
-                copyText: `HARGA TIKET JKT48 BIKIN BONCOS: Di Jepang Cuma Seminggu Gaji, di Sini Habis Sebulan UMR!\n\nPerbandingan Konser AKB48 di Yoyogi (Tokyo) vs JKT48 di Graha Unesa (Surabaya).`,
-                imageNote: "Dapat menggunakan desain typography bold dengan gradasi warna neon (kuning & merah) untuk menarik perhatian di feed.",
+                copyText: `HARGA TIKET JKT48 BIKIN BONCOS: Di Jepang Cuma Seminggu Gaji, di Sini Habis Sebulan UMR!\n\nYoyogi National Gymnasium (Tokyo) vs Graha UNESA (Surabaya). Mengapa tiket di Indonesia justru jauh lebih mahal?`,
                 imageUrl: null
             },
             {
                 id: 2,
-                category: "AKB48 TOKYO CONCERT DATA",
-                title: "Data Konser AKB48",
-                bgGradient: "from-emerald-950/30 via-brand-dark to-brand-dark",
+                category: "DATA KONSER AKB48 YOYOGI",
+                title: "AKB48 Yoyogi Data",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-1">
-                        <!-- Header -->
-                        <div class="flex items-center justify-between mb-2">
+                        <!-- Top Header -->
+                        <div class="flex items-center justify-between mb-1">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-base">🇯🇵</span>
-                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px] tracking-wider border border-emerald-500/30">AKB48 YOYOGI</span>
+                                <span class="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-extrabold text-[10px] tracking-wider border border-emerald-500/30">AKB48 TOKYO</span>
                             </div>
-                            <span class="text-gray-400 text-xs font-mono">02/06</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">02/06</span>
                         </div>
 
-                        <h3 class="text-lg font-black text-white leading-tight">
-                            Yoyogi National Gymnasium <span class="text-emerald-400">(Tokyo)</span>
-                        </h3>
-
-                        <!-- Seating Chart Visual Box -->
-                        <div class="my-2 rounded-xl bg-black/50 border border-brand-border p-2 flex flex-col items-center justify-center relative overflow-hidden group min-h-[140px]" id="visualBoxSlide2">
-                            <img id="imgSlide2" src="https://placehold.co/600x400/161926/facc15?text=Gambar+Seating+Plan+AKB48+Yoyogi" alt="Seating Plan AKB48" class="w-full h-36 object-contain rounded-lg">
-                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs font-bold text-white gap-2">
-                                <i class="fa-solid fa-location-dot text-brand-yellow"></i> Taruh foto image_f45082.jpg di sini
-                            </div>
+                        <div class="mb-1">
+                            <h3 class="text-base font-black text-white leading-tight">Yoyogi National Gymnasium</h3>
+                            <p class="text-[11px] text-emerald-400 font-semibold">Kapasitas: ~12.000 Penonton</p>
                         </div>
 
-                        <!-- Data Grid -->
-                        <div class="grid grid-cols-2 gap-2 text-xs mb-1">
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border">
-                                <p class="text-[10px] text-gray-400 uppercase font-semibold">Kapasitas Venue</p>
-                                <p class="text-sm font-black text-white">~12.000 <span class="text-[10px] font-normal text-gray-400">Kursi</span></p>
-                            </div>
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border">
-                                <p class="text-[10px] text-gray-400 uppercase font-semibold">Tiket Termurah</p>
-                                <p class="text-sm font-black text-emerald-400">5.000 Yen <span class="text-[10px] font-normal text-gray-400">(~Rp 570rb)</span></p>
-                            </div>
+                        <!-- Image Slot Seating Chart -->
+                        <div class="my-1 rounded-xl bg-navy-darker border border-navy-border p-1.5 flex flex-col items-center justify-center relative overflow-hidden h-36 md:h-40" id="visualBoxSlide2">
+                            <img id="imgSlide2" src="https://placehold.co/600x400/162035/4262b2?text=Upload+Seating+Plan+AKB48+Yoyogi" alt="Seating Plan AKB48" class="w-full h-full object-contain rounded-lg">
                         </div>
 
-                        <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border text-xs">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] text-gray-400 uppercase font-semibold">Tiket Termahal (Arena)</span>
-                                <span class="text-xs font-bold text-brand-yellow">22.000 Yen (~Rp 2,5 Juta)</span>
+                        <!-- Pricing Breakdown Grid -->
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <div class="bg-navy-card p-2 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">Arena Seat (Termahal)</p>
+                                <p class="text-xs font-black text-brand-amber">22.000 Yen <span class="text-[9px] font-medium text-slate-300">(~Rp 2,5 Jt)</span></p>
                             </div>
-                            <p class="text-[10px] text-gray-400 leading-tight">
-                                Varian harga lain: Photographer Seat (18k Yen), 1st Floor (12k–15k Yen), 2nd Floor (6,8k–9,8k Yen).
-                            </p>
+                            <div class="bg-navy-card p-2 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">Photographer Seat</p>
+                                <p class="text-xs font-black text-white">18.000 Yen <span class="text-[9px] font-medium text-slate-300">(~Rp 2,0 Jt)</span></p>
+                            </div>
+                            <div class="bg-navy-card p-2 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">Stand Seat</p>
+                                <p class="text-xs font-black text-slate-200">6.800–12.000 Yen <span class="text-[9px] font-medium text-slate-300">(770k–1,3M)</span></p>
+                            </div>
+                            <div class="bg-navy-card p-2 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">U-19 Seat (Termurah)</p>
+                                <p class="text-xs font-black text-emerald-400">5.000 Yen <span class="text-[9px] font-medium text-slate-300">(~Rp 570rb)</span></p>
+                            </div>
                         </div>
                     </div>
                 `,
-                copyText: `DATA KONSER AKB48 (Yoyogi National Gymnasium, Tokyo):\n• Kapasitas Venue: ~12.000 Penonton\n• Tiket Termahal: 22.000 Yen (~Rp 2,5 Juta) - Arena Seat\n• Tiket Termurah: 5.000 Yen (~Rp 570 Ribu) - U-19 Stand Seat\n• Opsi Kelas Lain: Photographer Seat 18.000 Yen, Stand 6.800 - 15.000 Yen.`,
-                imageNote: "LETAK GAMBAR: Tempatkan gambar screenshot seating chart AKB48 (image_f45082.jpg) pada kotak preview di tengah slide ini.",
-                imageUrl: "https://placehold.co/600x400/161926/facc15?text=Gambar+Seating+Plan+AKB48+Yoyogi"
+                copyText: `AKB48 Live at Yoyogi National Gymnasium (Kapasitas: ~12.000 Penonton):\n• Arena Seat (Termahal): 22.000 Yen (~Rp 2,5 Juta)\n• Photographer Seat: 18.000 Yen (~Rp 2,0 Juta)\n• Stand Seat: 6.800 - 12.000 Yen (~Rp 770rb - Rp 1,3 Juta)\n• U-19 Seat (Termurah): 5.000 Yen (~Rp 570 Ribu)`,
+                imageUrl: "https://placehold.co/600x400/162035/4262b2?text=Upload+Seating+Plan+AKB48+Yoyogi"
             },
             {
                 id: 3,
-                category: "JKT48 SURABAYA CONCERT DATA",
-                title: "Data Konser JKT48",
-                bgGradient: "from-pink-950/30 via-brand-dark to-brand-dark",
+                category: "DATA KONSER JKT48 GRAHA UNESA",
+                title: "JKT48 Unesa Data",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-1">
-                        <!-- Header -->
-                        <div class="flex items-center justify-between mb-2">
+                        <!-- Top Header -->
+                        <div class="flex items-center justify-between mb-1">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-base">🇮🇩</span>
-                                <span class="px-2 py-0.5 rounded bg-pink-500/20 text-pink-400 font-bold text-[10px] tracking-wider border border-pink-500/30">JKT48 SURABAYA</span>
+                                <span class="px-2.5 py-0.5 rounded bg-brand-blue/20 text-blue-300 font-extrabold text-[10px] tracking-wider border border-brand-blue/30">JKT48 SURABAYA</span>
                             </div>
-                            <span class="text-gray-400 text-xs font-mono">03/06</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">03/06</span>
                         </div>
 
-                        <h3 class="text-lg font-black text-white leading-tight">
-                            Graha UNESA <span class="text-pink-400">(Surabaya)</span>
-                        </h3>
-
-                        <!-- Seating Chart Visual Box -->
-                        <div class="my-2 rounded-xl bg-black/50 border border-brand-border p-2 flex flex-col items-center justify-center relative overflow-hidden group min-h-[140px]" id="visualBoxSlide3">
-                            <img id="imgSlide3" src="https://placehold.co/600x400/161926/f43f5e?text=Gambar+Seating+Plan+JKT48+Unesa" alt="Seating Plan JKT48" class="w-full h-36 object-contain rounded-lg">
-                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs font-bold text-white gap-2">
-                                <i class="fa-solid fa-location-dot text-brand-red"></i> Taruh foto image_f44ddc.jpg di sini
-                            </div>
+                        <div class="mb-1">
+                            <h3 class="text-base font-black text-white leading-tight">JKT48 "Ayo Senyumlah" Graha UNESA</h3>
+                            <p class="text-[11px] text-brand-cyan font-semibold">Kapasitas: ~6.000 Penonton</p>
                         </div>
 
-                        <!-- Data Grid -->
-                        <div class="grid grid-cols-2 gap-2 text-xs mb-1">
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border">
-                                <p class="text-[10px] text-gray-400 uppercase font-semibold">Kapasitas Venue</p>
-                                <p class="text-sm font-black text-white">~6.000 <span class="text-[10px] font-normal text-gray-400">Kursi</span></p>
-                            </div>
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border">
-                                <p class="text-[10px] text-gray-400 uppercase font-semibold">Tiket Termurah</p>
-                                <p class="text-sm font-black text-pink-400">Rp 450.000 <span class="text-[10px] font-normal text-gray-400">(CAT 7)</span></p>
-                            </div>
+                        <!-- Image Slot Seating Chart -->
+                        <div class="my-1 rounded-xl bg-navy-darker border border-navy-border p-1.5 flex flex-col items-center justify-center relative overflow-hidden h-36 md:h-40" id="visualBoxSlide3">
+                            <img id="imgSlide3" src="https://placehold.co/600x400/162035/ef4444?text=Upload+Seating+Plan+JKT48+Unesa" alt="Seating Plan JKT48" class="w-full h-full object-contain rounded-lg">
                         </div>
 
-                        <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border text-xs">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] text-gray-400 uppercase font-semibold">Tiket Termahal (CAT 1)</span>
-                                <span class="text-xs font-bold text-brand-yellow">Rp 3.500.000 (Pre-Sale)</span>
+                        <!-- Pricing Breakdown Grid -->
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <div class="bg-navy-card p-2 rounded-lg border border-navy-border col-span-2 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase">CAT 1 (Termahal Pre-Sale)</p>
+                                    <p class="text-[9px] text-slate-300">Incl. Group Photo, Soundcheck, Lightstick 2.0 & Merch</p>
+                                </div>
+                                <span class="text-xs font-black text-brand-red">Rp 3.500.000</span>
                             </div>
-                            <p class="text-[10px] text-gray-400 leading-tight">
-                                Varian lain: CAT 2 (Rp 2,0M–2,2M), CAT 3 (Rp 1,1M–1,2M), CAT 4–6 (Rp 500rb–Rp 1M).
-                            </p>
+                            <div class="bg-navy-card p-1.5 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">CAT 2 & CAT 3</p>
+                                <p class="text-xs font-black text-white">Rp 1,1M – Rp 2,2M</p>
+                            </div>
+                            <div class="bg-navy-card p-1.5 rounded-lg border border-navy-border">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">CAT 7 (Termurah)</p>
+                                <p class="text-xs font-black text-brand-cyan">Rp 450.000</p>
+                            </div>
                         </div>
                     </div>
                 `,
-                copyText: `DATA KONSER JKT48 (Graha UNESA, Surabaya):\n• Kapasitas Venue: ~6.000 Penonton\n• Tiket Termahal: Rp 3.500.000 (CAT 1 Pre-Sale)\n• Tiket Termurah: Rp 450.000 (CAT 7)\n• Opsi Kelas Lain: CAT 2 (Rp 2,0M - 2,2M), CAT 3 (Rp 1,1M - 1,2M), CAT 4-6 (Rp 500rb - 1M).`,
-                imageNote: "LETAK GAMBAR: Tempatkan gambar poster seating chart JKT48 Ayo Senyumlah (image_f44ddc.jpg) pada kotak preview di tengah slide ini.",
-                imageUrl: "https://placehold.co/600x400/161926/f43f5e?text=Gambar+Seating+Plan+JKT48+Unesa"
+                copyText: `JKT48 13th Anniversary Concert "Ayo Senyumlah" Graha UNESA Surabaya (Kapasitas: ~6.000 Penonton):\n• CAT 1 (Termahal): Rp 3.500.000 (Pre-Sale) — Incl. Soundcheck, Group Photo, Lightstick 2.0, Kaos & Merch Kit\n• CAT 2: Rp 2.000.000 / Rp 2.200.000\n• CAT 3: Rp 1.100.000 / Rp 1.200.000\n• CAT 4 - 6: Rp 500.000 - Rp 1.000.000\n• CAT 7 (Termurah): Rp 450.000`,
+                imageUrl: "https://placehold.co/600x400/162035/ef4444?text=Upload+Seating+Plan+JKT48+Unesa"
             },
             {
                 id: 4,
-                category: "ADU NOMINAL & UMR",
-                title: "Perbandingan UMR vs Tiket",
-                bgGradient: "from-amber-950/30 via-brand-dark to-brand-dark",
+                category: "ADU BEBAN EKONOMI & UMR",
+                title: "Uji Daya Beli UMR",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-1">
                         <!-- Header -->
                         <div class="flex items-center justify-between mb-2">
-                            <span class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-extrabold text-[10px] tracking-wider border border-amber-500/30">📊 ANALISIS UMR & KANTONG</span>
-                            <span class="text-gray-400 text-xs font-mono">04/06</span>
+                            <span class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold text-[10px] tracking-wider border border-amber-500/30">📊 ADU BEBAN EKONOMI</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">04/06</span>
                         </div>
 
                         <h3 class="text-base font-black text-white leading-tight mb-2">
-                            Adu Nominal & Persentase Daya Beli
+                            Perbandingan Nyata Terhadap Kantong Fans
                         </h3>
 
-                        <!-- Comparison Cards -->
                         <div class="space-y-2 text-xs">
-                            <!-- VIP Ticket Comparison -->
-                            <div class="bg-brand-card p-3 rounded-xl border border-brand-border">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Harga Tiket Termahal (VIP)</p>
-                                <div class="grid grid-cols-2 gap-2 text-center">
-                                    <div class="bg-brand-dark/80 p-2 rounded-lg border border-white/5">
-                                        <p class="text-[10px] text-gray-400">AKB48 Tokyo</p>
-                                        <p class="text-sm font-black text-emerald-400">Rp 2,5 Juta</p>
-                                    </div>
-                                    <div class="bg-brand-dark/80 p-2 rounded-lg border border-white/5">
-                                        <p class="text-[10px] text-gray-400">JKT48 Surabaya</p>
-                                        <p class="text-sm font-black text-brand-red">Rp 3,5 Juta</p>
-                                    </div>
+                            <!-- Tokyo Box -->
+                            <div class="bg-navy-card p-3 rounded-xl border border-emerald-500/30">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-emerald-400">🇯🇵 Tokyo, Jepang</span>
+                                    <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-300 font-bold">UMR ~Rp 20 Jt/Bln</span>
                                 </div>
-                            </div>
-
-                            <!-- UMR Benchmark -->
-                            <div class="bg-brand-card p-3 rounded-xl border border-brand-border">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Standar UMR / UMK Bulanan</p>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="text-xs">
-                                        <span class="text-gray-400">Tokyo:</span> <strong class="text-white">~Rp 20 Jt/bln</strong>
-                                    </div>
-                                    <div class="text-xs">
-                                        <span class="text-gray-400">Surabaya:</span> <strong class="text-white">~Rp 4,7 Jt/bln</strong>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Impact Gauge -->
-                            <div class="bg-gradient-to-r from-red-950/60 to-brand-card p-3 rounded-xl border border-red-500/30">
-                                <p class="text-[11px] font-black text-white mb-1 flex items-center justify-between">
-                                    <span>Beban Gaji Bulanan (Tiket VIP):</span>
+                                <p class="text-slate-300 text-[11px] leading-relaxed">
+                                    Tiket termahal AKB48 (Rp 2,5 Juta) hanya memakan <strong>~12% dari gaji bulanan</strong>. Cukup disisihkan dari kerja paruh waktu beberapa hari atau gaji 1 minggu!
                                 </p>
-                                <div class="space-y-1.5 text-[11px]">
+                            </div>
+
+                            <!-- Surabaya Box -->
+                            <div class="bg-navy-card p-3 rounded-xl border border-brand-red/30">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-brand-red">🇮🇩 Surabaya, Indonesia</span>
+                                    <span class="text-[10px] bg-red-500/20 px-2 py-0.5 rounded text-red-300 font-bold">UMK ~Rp 4,7 Jt/Bln</span>
+                                </div>
+                                <p class="text-slate-300 text-[11px] leading-relaxed">
+                                    Tiket CAT 1 JKT48 (Rp 3,5 Juta) menyedot <strong>75% hingga 100%+ gaji sebulan</strong> (bahkan lebih besar dari 1 bulan UMR daerah di sekitarnya).
+                                </p>
+                            </div>
+
+                            <!-- Real Salary Ratio Progress Bar -->
+                            <div class="p-3 bg-navy-darker rounded-xl border border-navy-border">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Persentase Tiket VIP Terhadap Gaji Sebulan:</p>
+                                <div class="space-y-2">
                                     <div>
-                                        <div class="flex justify-between text-gray-300 font-semibold mb-0.5">
-                                            <span>AKB48 (Tokyo)</span>
-                                            <span class="text-emerald-400 font-bold">~12.5% UMR (3 Hari Gaji)</span>
+                                        <div class="flex justify-between text-[10px] text-slate-300 font-semibold mb-0.5">
+                                            <span>AKB48 Tokyo (12%)</span>
+                                            <span class="text-emerald-400 font-bold">Ringan</span>
                                         </div>
-                                        <div class="w-full bg-brand-dark rounded-full h-1.5 overflow-hidden">
-                                            <div class="bg-emerald-400 h-1.5 rounded-full" style="width: 12.5%"></div>
+                                        <div class="w-full bg-navy rounded-full h-2 overflow-hidden">
+                                            <div class="bg-emerald-400 h-2 rounded-full" style="width: 12%"></div>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between text-gray-300 font-semibold mb-0.5">
-                                            <span>JKT48 (Surabaya)</span>
-                                            <span class="text-brand-red font-bold">~74.5% UMR (3 Minggu Gaji!)</span>
+                                        <div class="flex justify-between text-[10px] text-slate-300 font-semibold mb-0.5">
+                                            <span>JKT48 Surabaya (75%)</span>
+                                            <span class="text-brand-red font-bold">Menguras Kantong!</span>
                                         </div>
-                                        <div class="w-full bg-brand-dark rounded-full h-1.5 overflow-hidden">
-                                            <div class="bg-brand-red h-1.5 rounded-full" style="width: 74.5%"></div>
+                                        <div class="w-full bg-navy rounded-full h-2 overflow-hidden">
+                                            <div class="bg-brand-red h-2 rounded-full" style="width: 75%"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 `,
-                copyText: `ADU NOMINAL & UMR:\n• Tiket VIP Termahal: AKB48 Rp 2,5 Jt vs JKT48 Rp 3,5 Jt (JKT48 Lebih mahal 1 Juta!).\n• UMR Acuan: Tokyo ~Rp 20 Jt/bulan vs Surabaya ~Rp 4,7 Jt/bulan.\n• Beban Gaji Tiket VIP:\n  - AKB48 Tokyo: Cuma ~12.5% UMR (Setara ~3 hari kerja).\n  - JKT48 Surabaya: Menyedot ~74.5% - 100%+ UMR (Setara hampir sebulan gaji!).`,
-                imageNote: "Slide komparasi data ini memvisualisasikan jurang persentase beban gaji antara penonton di Jepang vs penonton lokal.",
+                copyText: `PERBANDINGAN NYATA TERHADAP KANTONG FANS:\n• Jepang: UMR Tokyo rata-rata ~Rp 20.000.000+. Tiket termahal (Rp 2,5 jt) = ~12% gaji sebulan. Cukup disisihkan dari kerja paruh waktu atau gaji seminggu.\n• Indonesia: UMK Surabaya ~Rp 4.700.000 (UMR daerah Jatim lain ~Rp 2,2 - 3 jt). Tiket CAT 1 (Rp 3,5 jt) = 75% sampai 100%+ gaji sebulan.`,
                 imageUrl: null
             },
             {
                 id: 5,
-                category: "ANALISIS EKONOMI KONSER",
-                title: "Kenapa Bisa Begitu?",
-                bgGradient: "from-purple-950/30 via-brand-dark to-brand-dark",
+                category: "KENAPA BISA LEBIH MAHAL?",
+                title: "Analisis Industri",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-1">
                         <!-- Header -->
                         <div class="flex items-center justify-between mb-2">
-                            <span class="px-2.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-extrabold text-[10px] tracking-wider border border-purple-500/30">💡 KENAPA BISA BEGITU?</span>
-                            <span class="text-gray-400 text-xs font-mono">05/06</span>
+                            <span class="px-2.5 py-0.5 rounded bg-brand-blue/20 text-blue-300 font-extrabold text-[10px] tracking-wider border border-brand-blue/30">💡 ANALISIS INDUSTRI</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">05/06</span>
                         </div>
 
                         <h3 class="text-base font-black text-white leading-tight mb-2">
-                            3 Alasan Utama Di Balik Perbedaan Harga
+                            3 Alasan Mengapa Tiket Lokal Lebih Mahal
                         </h3>
 
-                        <!-- 3 Points -->
                         <div class="space-y-2 text-xs">
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border flex gap-2.5 items-start">
-                                <span class="w-5 h-5 rounded-full bg-brand-yellow text-black font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <div class="bg-navy-card p-2.5 rounded-xl border border-navy-border flex gap-2.5 items-start">
+                                <span class="w-5 h-5 rounded-full bg-brand-blue text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
                                 <div>
-                                    <h4 class="font-bold text-white text-xs">Economy of Scale (Skala Ekonomi)</h4>
-                                    <p class="text-[11px] text-gray-400 leading-tight">Venue Yoyogi (12rb penonton) 2x lipat Unesa (6rb). Biaya sewa & produksi panggung dibagi ke lebih banyak penonton.</p>
+                                    <h4 class="font-bold text-white text-xs">Skala Ekonomi (Economy of Scale)</h4>
+                                    <p class="text-[10px] text-slate-300 leading-tight">Yoyogi menampung 12.000 orang, sementara UNESA 6.000. Biaya panggung & sewa di Tokyo dibagi ke lebih banyak penonton.</p>
                                 </div>
                             </div>
 
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border flex gap-2.5 items-start">
-                                <span class="w-5 h-5 rounded-full bg-brand-yellow text-black font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <div class="bg-navy-card p-2.5 rounded-xl border border-navy-border flex gap-2.5 items-start">
+                                <span class="w-5 h-5 rounded-full bg-brand-blue text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
                                 <div>
-                                    <h4 class="font-bold text-white text-xs">Bundling Benefit VIP</h4>
-                                    <p class="text-[11px] text-gray-400 leading-tight">CAT 1 JKT48 (Rp 3,5M) include Photoshoot, Soundcheck, Lightstick 2.0, Exclusive T-Shirt & Fast-track lane.</p>
+                                    <h4 class="font-bold text-white text-xs">Strategi Bundling Benefit VIP</h4>
+                                    <p class="text-[10px] text-slate-300 leading-tight">CAT 1 JKT48 menjual paket eksklusif (Photoshoot, Soundcheck, Merchandise Kit & Lightstick 2.0) dengan margin tebal.</p>
                                 </div>
                             </div>
 
-                            <div class="bg-brand-card p-2.5 rounded-xl border border-brand-border flex gap-2.5 items-start">
-                                <span class="w-5 h-5 rounded-full bg-brand-yellow text-black font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <div class="bg-navy-card p-2.5 rounded-xl border border-navy-border flex gap-2.5 items-start">
+                                <span class="w-5 h-5 rounded-full bg-brand-blue text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
                                 <div>
-                                    <h4 class="font-bold text-white text-xs">Strategi Subsidy & Hardcore Fans</h4>
-                                    <p class="text-[11px] text-gray-400 leading-tight">Manajemen lokal memaksimalkan segmen fanatik (sultan) di CAT 1/2 untuk menutup margin tiket murah (CAT 7 Rp 450rb).</p>
+                                    <h4 class="font-bold text-white text-xs">Segmen Pasar Fanatik</h4>
+                                    <p class="text-[10px] text-slate-300 leading-tight">Manajemen paham fans hardcore rela menyisihkan tabungan demi momen langka, sehingga harga kategori teratas dipasang tinggi.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `,
-                copyText: `MENGAPA TIKET KONSER SURABAYA BISA LEBIH MAHAL?\n1. Economy of Scale: Kapasitas Yoyogi (12rb) 2x lipat Unesa (6rb), biaya produksi terbagi lebih efisien.\n2. Bundling Benefit VIP: Tiket CAT 1 JKT48 seharga 3.5 Juta menyertakan benefit photoshoot, soundcheck, T-Shirt, dan Lightstick.\n3. Segmentasi Hardcore Fans: Mengandalkan margin tinggi dari fans sultan untuk menutupi biaya operasional venue sedang.`,
-                imageNote: "Slide analisis memberikan pemahaman bisnis di balik strategi penentuan harga tiket oleh pihak promotor.",
+                copyText: `3 ALASAN UTAMA MENGAPA TIKET KONSER LOKAL BISA LEBIH MAHAL:\n1. Skala Ekonomi: Kapasitas Yoyogi (12.000) vs UNESA (6.000) - biaya produksi panggung dibagi ke lebih banyak penonton di Jepang.\n2. Strategi Bundling VIP: Paket CAT 1 menjual benefit eksklusif (photoshoot, merch kit, lightstick) dengan margin tebal.\n3. Segmen Pasar Loyal: Hardcore fans rela menabung demi interaksi langka.`,
                 imageUrl: null
             },
             {
                 id: 6,
-                category: "OUTRO & DISKUSI",
-                title: "Call To Action / Outro",
-                bgGradient: "from-blue-950/30 via-brand-dark to-brand-dark",
+                category: "PENUTUP & INTERAKSI",
+                title: "Outro & Discussion",
                 htmlContent: `
                     <div class="flex flex-col justify-between h-full py-2 text-center">
-                        <!-- Header Tag -->
                         <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-extrabold text-[10px] tracking-wider border border-blue-500/30">💬 SUARA FANS & OPINI</span>
-                            <span class="text-gray-400 text-xs font-mono">06/06</span>
+                            <span class="px-2.5 py-0.5 rounded bg-brand-cyan/20 text-brand-cyan font-extrabold text-[10px] tracking-wider border border-brand-cyan/30">💬 SUARA FANS</span>
+                            <span class="text-slate-400 text-xs font-mono font-bold">06/06</span>
                         </div>
 
-                        <!-- Main Question Callout -->
                         <div class="my-auto space-y-3 px-2">
-                            <div class="w-12 h-12 rounded-2xl bg-brand-yellow/10 border border-brand-yellow/30 text-brand-yellow flex items-center justify-center mx-auto text-xl shadow-lg">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-blue/20 border border-brand-blue/40 text-brand-cyan flex items-center justify-center mx-auto text-xl shadow-lg">
                                 <i class="fa-solid fa-comments"></i>
                             </div>
-                            
+
                             <h3 class="text-xl md:text-2xl font-black text-white leading-tight">
-                                WARTH IT ATAU KEMAHALAN?
+                                MENURUTMU WAJAR ATAU KEMAHALAN?
                             </h3>
 
-                            <p class="text-xs md:text-sm text-gray-300 leading-relaxed font-medium">
-                                Menurut kamu, dengan benefit merch & photoshoot yang didapat di CAT 1, apakah harga tiket JKT48 ini <strong class="text-brand-yellow">masuk akal</strong> atau <strong class="text-brand-red">terlalu tinggi untuk UMR lokal</strong>?
+                            <p class="text-xs md:text-sm text-slate-300 leading-relaxed font-medium">
+                                Apakah harga <strong class="text-brand-amber">Rp 3,5 Juta</strong> sepadan dengan benefit photoshoot & merchandise yang didapat? Atau industri konser idola memang makin tidak ramah kantong UMR?
                             </p>
 
-                            <div class="p-3 bg-brand-card rounded-xl border border-brand-border text-xs text-brand-yellow font-bold animate-pulse">
-                                👇 TULIS PENDAPATMU DI KOLOM KOMENTAR!
+                            <div class="p-3 bg-navy-card rounded-xl border border-brand-blue/40 text-xs text-brand-cyan font-bold">
+                                👇 TULIS OPINIMU DI KOLOM KOMENTAR!
                             </div>
                         </div>
 
-                        <!-- Share & Save Buttons -->
-                        <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-xs font-bold">
-                            <div class="p-2 bg-brand-card rounded-lg border border-brand-border text-gray-300 flex items-center justify-center gap-1.5">
-                                <i class="fa-regular fa-paper-plane text-brand-yellow"></i> Share ke Temen
+                        <div class="pt-3 border-t border-navy-border grid grid-cols-2 gap-2 text-xs font-bold">
+                            <div class="p-2 bg-navy-card rounded-lg border border-navy-border text-slate-300 flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-paper-plane text-brand-blue"></i> Share ke Wots
                             </div>
-                            <div class="p-2 bg-brand-card rounded-lg border border-brand-border text-gray-300 flex items-center justify-center gap-1.5">
-                                <i class="fa-regular fa-bookmark text-brand-yellow"></i> Save Postingan
+                            <div class="p-2 bg-navy-card rounded-lg border border-navy-border text-slate-300 flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark text-brand-cyan"></i> Save Postingan
                             </div>
                         </div>
                     </div>
                 `,
-                copyText: `DISKUSI:\nMenurut kamu, dengan benefit yang didapat (Lightstick, Photoshoot, Soundcheck), harga tiket JKT48 ini worth it atau kemahalan? Tulis pendapatmu di komentar! 👇`,
-                imageNote: "Slide penutup ini berfokus memaksimalkan engagement (komentar, simpan, dan bagikan postingan).",
+                copyText: `MENURUTMU WAJAR ATAU KEMAHALAN?\nApakah harga Rp 3,5 juta sepadan dengan benefit yang didapat? Atau industri konser idola kita memang makin tidak ramah kantong?\n\nTulis pendapatmu di kolom komentar! Jangan lupa share ke teman seperjuangan wots!`,
                 imageUrl: null
             }
         ];
 
-        // CURRENT STATE VARIABLES
+        // APP STATE
         let currentSlideIndex = 0;
         let currentAspectRatio = '4-5';
 
-        // INITIALIZATION ON DOM LOAD
+        // INIT ON WINDOW LOAD
         window.onload = function() {
             renderTabs();
             renderSlide(currentSlideIndex);
             setupKeyboardNav();
-            setupTouchSwipe();
         };
 
-        // RENDER SLIDE TABS
+        // RENDER SLIDE NUMERIC TABS
         function renderTabs() {
             const container = document.getElementById('slideTabButtons');
             container.innerHTML = '';
             slidesData.forEach((slide, index) => {
                 const btn = document.createElement('button');
-                btn.className = `p-2 rounded-xl border text-center transition font-bold text-xs flex flex-col items-center justify-center gap-0.5 ${
+                btn.className = `p-2 rounded-xl border text-center transition font-bold text-xs flex flex-col items-center justify-center ${
                     index === currentSlideIndex 
-                    ? 'bg-brand-yellow text-black border-brand-yellow shadow-lg shadow-brand-yellow/10' 
-                    : 'bg-brand-dark text-gray-400 border-brand-border hover:border-gray-500'
+                    ? 'bg-brand-blue text-white border-brand-blue shadow-lg shadow-brand-blue/20' 
+                    : 'bg-navy text-slate-400 border-navy-border hover:border-slate-500'
                 }`;
                 btn.onclick = () => goToSlide(index);
                 btn.innerHTML = `
-                    <span class="text-[10px] opacity-80">Slide</span>
+                    <span class="text-[9px] opacity-70">Slide</span>
                     <span class="text-sm font-black">${index + 1}</span>
                 `;
                 container.appendChild(btn);
             });
         }
 
-        // RENDER ACTIVE SLIDE IN CAROUSEL & PANEL
+        // RENDER ACTIVE SLIDE
         function renderSlide(index) {
             currentSlideIndex = index;
             const slide = slidesData[index];
 
-            // 1. Update Carousel Viewport Content
+            // 1. Update Carousel Viewport
             const slideViewport = document.getElementById('slideViewport');
             const slideContent = document.getElementById('slideContent');
 
-            // Set Background Gradient
-            slideViewport.className = `relative w-full rounded-xl overflow-hidden bg-gradient-to-b ${slide.bgGradient} border border-brand-border slide-ratio-${currentAspectRatio} transition-all duration-300 shadow-inner flex flex-col justify-between p-5 md:p-6 select-none`;
-            
+            slideViewport.className = `relative w-full rounded-xl overflow-hidden bg-navy border border-navy-border ratio-${currentAspectRatio} transition-all duration-300 shadow-inner flex flex-col justify-between p-5 md:p-6 select-none`;
             slideContent.innerHTML = slide.htmlContent;
 
-            // 2. Update Counter & Dot Indicators
+            // 2. Counter & Dots
             document.getElementById('slideCounter').innerText = `${index + 1} / ${slidesData.length}`;
             renderDots();
 
-            // 3. Update Detail Side Panel
+            // 3. Detail Panel
             document.getElementById('detailBadge').innerText = `Slide ${slide.id} dari ${slidesData.length}`;
             document.getElementById('detailTitle').innerText = slide.title;
             document.getElementById('detailTextContent').innerText = slide.copyText;
-            document.getElementById('detailImageNote').innerText = slide.imageNote;
 
-            // Show / Hide Image Manager for Slides 2 & 3
+            // Image Uploader visibility for slide 2 & 3
             const imgContainer = document.getElementById('imageUploaderContainer');
             if (slide.id === 2 || slide.id === 3) {
                 imgContainer.classList.remove('hidden');
@@ -713,18 +675,17 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
                 imgContainer.classList.add('hidden');
             }
 
-            // Update Tab Highlight
             renderTabs();
         }
 
-        // RENDER DOT INDICATORS
+        // DOT INDICATORS
         function renderDots() {
             const container = document.getElementById('dotIndicators');
             container.innerHTML = '';
             slidesData.forEach((_, index) => {
                 const dot = document.createElement('div');
                 dot.className = `h-1.5 rounded-full transition-all duration-300 ${
-                    index === currentSlideIndex ? 'w-5 bg-brand-yellow' : 'w-1.5 bg-gray-600'
+                    index === currentSlideIndex ? 'w-5 bg-brand-blue' : 'w-1.5 bg-navy-border'
                 }`;
                 container.appendChild(dot);
             });
@@ -735,7 +696,7 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
             if (currentSlideIndex < slidesData.length - 1) {
                 renderSlide(currentSlideIndex + 1);
             } else {
-                renderSlide(0); // Loop back to start
+                renderSlide(0);
             }
         }
 
@@ -743,7 +704,7 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
             if (currentSlideIndex > 0) {
                 renderSlide(currentSlideIndex - 1);
             } else {
-                renderSlide(slidesData.length - 1); // Loop to last
+                renderSlide(slidesData.length - 1);
             }
         }
 
@@ -751,25 +712,48 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
             renderSlide(index);
         }
 
-        // TOGGLE ASPECT RATIO (4:5 vs 1:1)
+        // ASPECT RATIO SWITCHER
         function setAspectRatio(ratio) {
             currentAspectRatio = ratio;
             const btn45 = document.getElementById('btnRatio45');
             const btn11 = document.getElementById('btnRatio11');
 
             if (ratio === '4-5') {
-                btn45.className = "px-2.5 py-1.5 rounded-md bg-brand-yellow text-black font-bold transition";
-                btn11.className = "px-2.5 py-1.5 rounded-md text-gray-400 hover:text-white transition";
+                btn45.className = "px-3 py-1.5 rounded-md bg-brand-blue text-white font-bold transition shadow-sm";
+                btn11.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
             } else {
-                btn11.className = "px-2.5 py-1.5 rounded-md bg-brand-yellow text-black font-bold transition";
-                btn45.className = "px-2.5 py-1.5 rounded-md text-gray-400 hover:text-white transition";
+                btn11.className = "px-3 py-1.5 rounded-md bg-brand-blue text-white font-bold transition shadow-sm";
+                btn45.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
             }
 
             renderSlide(currentSlideIndex);
         }
 
-        // UPDATE SLIDE IMAGE FUNCTION FOR SLIDES 2 & 3
-        function updateSlideImage() {
+        // LOCAL FILE UPLOAD HANDLER (FileReader)
+        function handleLocalFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                slidesData[currentSlideIndex].imageUrl = dataUrl;
+
+                if (slidesData[currentSlideIndex].id === 2) {
+                    const img = document.getElementById('imgSlide2');
+                    if (img) img.src = dataUrl;
+                } else if (slidesData[currentSlideIndex].id === 3) {
+                    const img = document.getElementById('imgSlide3');
+                    if (img) img.src = dataUrl;
+                }
+
+                showToast("Gambar lokal berhasil dipasang pada slide!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // URL IMAGE UPDATE HANDLER
+        function updateSlideImageFromUrl() {
             const url = document.getElementById('imageUrlInput').value.trim();
             if (!url) return;
 
@@ -783,10 +767,81 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
                 if (img) img.src = url;
             }
 
-            showToast("Gambar seating plan berhasil diperbarui!");
+            showToast("URL Gambar berhasil dipasang!");
         }
 
-        // COPY TO CLIPBOARD UTILITIES (Using execCommand fallback safe for frame execution)
+        // EXPORT CURRENT SLIDE PNG USING HTML2CANVAS (High Res 3x Scale)
+        function exportCurrentSlidePNG() {
+            showToast("Sedang memproses ekspor PNG HD...");
+            const viewport = document.getElementById('slideViewport');
+
+            html2canvas(viewport, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#101726'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Slide-${slidesData[currentSlideIndex].id}-AKB48-vs-JKT48.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast(`Slide ${slidesData[currentSlideIndex].id} berhasil di-download!`);
+            }).catch(err => {
+                console.error("Gagal export PNG:", err);
+                showToast("Terjadi kendala saat mengekspor gambar.");
+            });
+        }
+
+        // EXPORT ALL SLIDES SEQUENTIALLY
+        async function exportAllSlidesPNG() {
+            showToast("Mulai meng-export 6 slide sekaligus...");
+            const container = document.getElementById('offscreenExportContainer');
+
+            for (let i = 0; i < slidesData.length; i++) {
+                const slide = slidesData[i];
+                
+                // Create offscreen node
+                const tempDiv = document.createElement('div');
+                const width = currentAspectRatio === '4-5' ? 540 : 540;
+                const height = currentAspectRatio === '4-5' ? 675 : 540;
+
+                tempDiv.style.width = width + 'px';
+                tempDiv.style.height = height + 'px';
+                tempDiv.className = "relative rounded-none overflow-hidden bg-navy p-6 flex flex-col justify-between text-white font-sans";
+                tempDiv.innerHTML = `
+                    <div class="absolute inset-0 bg-[radial-gradient(#243252_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                    <div class="relative z-10 h-full flex flex-col justify-between">${slide.htmlContent}</div>
+                `;
+
+                container.appendChild(tempDiv);
+
+                // Wait DOM render
+                await new Promise(r => setTimeout(r, 150));
+
+                try {
+                    const canvas = await html2canvas(tempDiv, {
+                        scale: 3,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#101726'
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = `Slide-0${slide.id}-AKB48-vs-JKT48.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (e) {
+                    console.error("Batch export error on slide " + slide.id, e);
+                }
+
+                container.removeChild(tempDiv);
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            showToast("Seluruh 6 slide berhasil di-download!");
+        }
+
+        // COPY TO CLIPBOARD UTILITY
         function copyTextToClipboard(text) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -794,10 +849,10 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.select();
-            
+
             try {
                 document.execCommand('copy');
-                showToast("Teks berhasil disalin!");
+                showToast("Teks disalin ke clipboard!");
             } catch (err) {
                 console.error("Gagal menyalin teks: ", err);
             } finally {
@@ -806,20 +861,15 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
         }
 
         function copyCurrentSlideText() {
-            const text = slidesData[currentSlideIndex].copyText;
-            copyTextToClipboard(text);
+            copyTextToClipboard(slidesData[currentSlideIndex].copyText);
         }
 
-        function copyAllCaptions() {
+        function copyFullCaptionText() {
             const fullText = document.getElementById('fullCaptionTextarea').value;
             copyTextToClipboard(fullText);
         }
 
-        function copyFullCaptionText() {
-            copyAllCaptions();
-        }
-
-        // TOAST NOTIFICATION SYSTEM
+        // TOAST NOTIFICATION
         function showToast(msg) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
@@ -828,10 +878,10 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
 
             setTimeout(() => {
                 toast.classList.add('hidden');
-            }, 2500);
+            }, 3000);
         }
 
-        // KEYBOARD NAVIGATION (Left / Right Arrow Keys)
+        // KEYBOARD NAV
         function setupKeyboardNav() {
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowRight') {
@@ -840,31 +890,6 @@ Menurut kalian, dengan benefit photoshoot & merchandise di CAT 1, harga tiket in
                     prevSlide();
                 }
             });
-        }
-
-        // TOUCH SWIPE NAVIGATION FOR MOBILE PREVIEW
-        function setupTouchSwipe() {
-            const viewport = document.getElementById('slideViewport');
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            viewport.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-
-            viewport.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleGesture();
-            }, { passive: true });
-
-            function handleGesture() {
-                if (touchEndX < touchStartX - 40) {
-                    nextSlide();
-                }
-                if (touchEndX > touchStartX + 40) {
-                    prevSlide();
-                }
-            }
         }
     </script>
 </body>
